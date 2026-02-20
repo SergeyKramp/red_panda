@@ -34,3 +34,6 @@ frontend/yarn-error.log*
 
 # Dev container
 .devcontainer/.env
+
+# Ignore database files
+*.sqlite
