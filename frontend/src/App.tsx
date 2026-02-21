@@ -1,5 +1,5 @@
-import { useAuthenticationStatusQuery } from "./features/authentication";
-import { AuthenticationForm } from "./pages/authentication-form";
+import { useAuthenticationStatusQuery } from "features/authentication";
+import { AuthenticationForm } from "pages";
 import styles from "./app.module.css";
 
 function App() {
