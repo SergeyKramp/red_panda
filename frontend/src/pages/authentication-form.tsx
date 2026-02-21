@@ -1,14 +1,8 @@
 import { FormEvent, useState } from "react";
-import { login } from "features/authentication";
+import { authenticate, login } from "features/authentication";
 import styles from "./authentication-form.module.css";
 
-type AuthenticationFormProps = {
-  onLoginSuccess: () => Promise<void>;
-};
-
-export function AuthenticationForm({
-  onLoginSuccess,
-}: AuthenticationFormProps) {
+export function AuthenticationForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -26,9 +20,13 @@ export function AuthenticationForm({
         setError("Invalid username or password.");
         return;
       }
-
-      await onLoginSuccess();
       setPassword("");
+
+      // Check with the backend if the login was successful. This will also update the global authentication state
+      const success = await authenticate();
+      if (!success) {
+        setError("Invalid username or password.");
+      }
     } catch (loginError) {
       setError("Unable to reach the server.");
       console.error("Login failed", loginError);

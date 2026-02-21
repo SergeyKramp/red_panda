@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../api";
 import z from "zod";
+import { useAuthenticationStore } from "./authentication-store";
 
 const LoginRequestZod = z.object({
   username: z.string(),
@@ -9,8 +10,16 @@ const LoginRequestZod = z.object({
 export type LoginRequest = z.infer<typeof LoginRequestZod>;
 
 const AUTHENTICATION_ENDPOINT = `${API_BASE_URL}/api/auth/login`;
+const AUTHENTICATION_ME_ENDPOINT = `${API_BASE_URL}/api/auth/me`;
 
-export async function login({ username, password }: LoginRequest) {
+const AuthStatusResponseZod = z.object({
+  authenticated: z.boolean(),
+});
+
+export async function login({
+  username,
+  password,
+}: LoginRequest): Promise<Response> {
   const body = new URLSearchParams({
     username,
     password,
@@ -27,15 +36,28 @@ export async function login({ username, password }: LoginRequest) {
 }
 
 /**
- * Check if authtentication cookie is present.
+ * Check if user is authenticated according to backend session state.
  */
-export function isLoggedIn() {
-  if (typeof document === "undefined") {
+export async function authenticate(): Promise<boolean> {
+  const setAuthenticated = useAuthenticationStore.getState().setAuthenticated;
+  try {
+    const response = await fetch(AUTHENTICATION_ME_ENDPOINT, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      console.error("Authentication check failed with status", response.status);
+      setAuthenticated(false);
+      return false;
+    }
+
+    const data = AuthStatusResponseZod.parse(await response.json());
+    setAuthenticated(data.authenticated);
+    return data.authenticated;
+  } catch (authCheckError) {
+    console.error("Authentication check failed", authCheckError);
+    setAuthenticated(false);
     return false;
   }
-
-  return document.cookie
-    .split(";")
-    .map((cookie) => cookie.trim())
-    .some((cookie) => cookie.startsWith("JSESSIONID="));
 }
