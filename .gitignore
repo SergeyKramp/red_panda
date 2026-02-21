@@ -37,3 +37,4 @@ frontend/yarn-error.log*
 
 # Ignore database files
 *.sqlite
+*/*.sqlite

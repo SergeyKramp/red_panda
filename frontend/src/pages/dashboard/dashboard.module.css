@@ -1,0 +1,20 @@
+.dashboardShell {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) 3fr;
+  grid-template-rows: auto;
+  width: 100%;
+  min-height: 100vh;
+  background: radial-gradient(
+    circle at top,
+    #e6f2ff 0%,
+    #f7fbff 45%,
+    #eef4fb 100%
+  );
+}
+
+.navbarContainer {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
