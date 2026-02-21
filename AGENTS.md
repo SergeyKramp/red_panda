@@ -34,6 +34,12 @@ Prioritize correctness, clarity, and practical delivery over over-engineering.
   , please rename it to kebab-case.
 - We use CSS modules for styling. Keep styles scoped to components and avoid global CSS when possible.
 - When writing CSS, use `rem` instead of `px` units for font sizes and spacing to ensure accessibility and responsiveness.
+- The name of the school we are making this for is called maplewood. So when creating colors use colors that are reminiscent of maplewood, such as warm browns, soft oranges, and muted greens. For example:
+  - Primary color: #A0522D (Sienna)
+  - Secondary color: #FF8C00 (Dark Orange)
+  - Accent color: #556B2F (Dark Olive Green)
+  - Background color: #F5F5DC (Beige)
+  - Text color: #333333 (Dark Gray)
 
 ## Quality Bar
 
