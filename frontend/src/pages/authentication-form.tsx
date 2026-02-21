@@ -1,39 +1,28 @@
 import { FormEvent, useState } from "react";
-import { login } from "features/authentication";
+import { useLoginMutation } from "features/authentication";
 import styles from "./authentication-form.module.css";
 
-type AuthenticationFormProps = {
-  onLoginSuccess: () => Promise<void>;
-};
-
-export function AuthenticationForm({
-  onLoginSuccess,
-}: AuthenticationFormProps) {
+export function AuthenticationForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loginMutation = useLoginMutation();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setError(null);
 
     try {
-      const response = await login({ username, password });
+      const response = await loginMutation.mutateAsync({ username, password });
 
       if (!response.ok) {
         setError("Invalid username or password.");
         return;
       }
-
-      await onLoginSuccess();
       setPassword("");
     } catch (loginError) {
       setError("Unable to reach the server.");
       console.error("Login failed", loginError);
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -74,10 +63,10 @@ export function AuthenticationForm({
           {error ? <p className={styles.error}>{error}</p> : null}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={loginMutation.isPending}
             className={styles.primaryButton}
           >
-            {submitting ? "Signing in..." : "Sign in"}
+            {loginMutation.isPending ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </section>

@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { isLoggedIn } from "./features/authentication";
+import { useAuthenticationStatusQuery } from "./features/authentication";
 import { AuthenticationForm } from "./pages/authentication-form";
 import styles from "./app.module.css";
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(() => isLoggedIn());
+  const { data: authenticated, isPending } = useAuthenticationStatusQuery();
+
+  // Prevent rendering the app until we know the authentication status to avoid flashes of the login form.
+  if (isPending) {
+    return null;
+  }
 
   if (!authenticated) {
-    return (
-      <AuthenticationForm
-        onLoginSuccess={async () => setAuthenticated(true)}
-      />
-    );
+    return <AuthenticationForm />;
   }
 
   return (
