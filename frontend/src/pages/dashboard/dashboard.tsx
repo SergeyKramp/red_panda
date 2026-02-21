@@ -1,16 +1,12 @@
-import { Navbar } from "features/ui/navbar/navbar";
 import styles from "./dashboard.module.css";
 
 export function Dashboard() {
   return (
-    <div className={styles.dashboardShell}>
-      <div className={styles.navbarContainer}>
-        <Navbar />
-      </div>
-      <main>
+    <section className={styles.pagePanel}>
+      <header>
         <h1>Dashboard</h1>
-        <p>You are logged in.</p>
-      </main>
-    </div>
+      </header>
+      <p>You are logged in.</p>
+    </section>
   );
 }

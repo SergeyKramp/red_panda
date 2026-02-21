@@ -1,29 +1,45 @@
 import styles from "./navbar.module.css";
+import { NavLink } from "react-router-dom";
 
 export function Navbar() {
   return (
     <nav className={styles.sidebar}>
       <section className={styles.brandArea}>
         <p className={styles.brandEyebrow}>Course Planner</p>
-        <h2 className={styles.brandTitle}>Red Panda</h2>
+        <h2 className={styles.brandTitle}>Maplewood High</h2>
       </section>
 
       <p className={styles.sectionLabel}>Navigation</p>
       <ul className={styles.navList}>
         <li>
-          <a className={`${styles.navLink} ${styles.active}`} href="/dashboard">
+          <NavLink
+            className={({ isActive }) =>
+              `${styles.navLink} ${isActive ? styles.active : ""}`
+            }
+            to="/dashboard"
+          >
             Dashboard
-          </a>
+          </NavLink>
         </li>
         <li>
-          <a className={styles.navLink} href="/courses">
+          <NavLink
+            className={({ isActive }) =>
+              `${styles.navLink} ${isActive ? styles.active : ""}`
+            }
+            to="/courses"
+          >
             Courses
-          </a>
+          </NavLink>
         </li>
         <li>
-          <a className={styles.navLink} href="/calendar">
+          <NavLink
+            className={({ isActive }) =>
+              `${styles.navLink} ${isActive ? styles.active : ""}`
+            }
+            to="/calendar"
+          >
             Calendar
-          </a>
+          </NavLink>
         </li>
       </ul>
     </nav>
