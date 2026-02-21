@@ -30,6 +30,10 @@ Prioritize correctness, clarity, and practical delivery over over-engineering.
 - Keep state predictable and centralized through the chosen state management approach.
 - Handle loading, success, and error states explicitly in the UI.
 - Keep components focused; move API and state logic out of view components when practical.
+- Use kebab-case for file names for all file names, not PascalCase or camelCase. If you see a file that looks like that
+  , please rename it to kebab-case.
+- We use CSS modules for styling. Keep styles scoped to components and avoid global CSS when possible.
+- When writing CSS, use `rem` instead of `px` units for font sizes and spacing to ensure accessibility and responsiveness.
 
 ## Quality Bar
 

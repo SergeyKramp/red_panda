@@ -1,0 +1,77 @@
+.pageBackground {
+  min-height: 100vh;
+  background: radial-gradient(
+    circle at top,
+    #e6f2ff 0%,
+    #f7fbff 45%,
+    #eef4fb 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.card {
+  width: min(32.5rem, 100%);
+  background: #ffffff;
+  border: 1px solid #d4dde9;
+  border-radius: 0.875rem;
+  padding: 1.75rem;
+  box-shadow: 0 0.5rem 1.875rem rgba(27, 38, 49, 0.08);
+}
+
+.headingPrimary {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #11324d;
+}
+
+.subtitle {
+  margin: 0.625rem 0 1.25rem;
+  color: #49627a;
+}
+
+.primaryButton {
+  margin-top: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #0f5ea8;
+  color: #ffffff;
+  padding: 0.625rem 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  margin-top: 0.5rem;
+  color: #1a3550;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.fieldInput {
+  border: 0.0625rem solid #b9c8d8;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.error {
+  margin: 0.5rem 0 0;
+  color: #a3251f;
+  font-size: 0.875rem;
+}
