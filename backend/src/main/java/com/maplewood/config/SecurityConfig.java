@@ -11,8 +11,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 public class SecurityConfig {
@@ -22,14 +25,20 @@ public class SecurityConfig {
                         throws Exception {
                 http.cors(Customizer.withDefaults())
                                 .csrf(csrf -> csrf.csrfTokenRepository(
-                                                CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                                                CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .ignoringRequestMatchers("/api/auth/login",
+                                                                "/api/auth/logout"))
                                 .sessionManagement(session -> session.sessionCreationPolicy(
                                                 SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/health").permitAll()
+                                                .requestMatchers("/api/health", "/api/auth/login")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
+                                .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(
+                                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                                new AntPathRequestMatcher("/api/**")))
                                 .formLogin(form -> form.loginProcessingUrl("/api/auth/login")
                                                 .successHandler((request, response,
                                                                 authentication) -> {
