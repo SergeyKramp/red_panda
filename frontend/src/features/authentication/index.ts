@@ -1,2 +1,2 @@
 export * from "./authentication";
-export * from "./authentication-store";
+export * from "./authentication-queries";

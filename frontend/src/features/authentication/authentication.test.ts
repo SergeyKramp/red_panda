@@ -1,44 +1,41 @@
 import { HttpResponse, http } from "msw";
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { authenticate } from "./authentication";
-import { useAuthenticationStore } from "./authentication-store";
+import { getAuthenticationStatus } from "./authentication";
 import { API_BASE_URL } from "features/api";
 import { mockServer } from "test-utils/mock-server";
 
 const AUTHENTICATION_ME_ENDPOINT = `${API_BASE_URL}/api/auth/me`;
 
-describe("authenticate", () => {
+describe("getAuthenticationStatus", () => {
   beforeEach(() => {
-    useAuthenticationStore.setState({ authenticated: null });
+    vi.restoreAllMocks();
   });
 
-  test("sets authenticated true when /me returns authenticated true", async () => {
+  test("returns true when /me returns authenticated true", async () => {
     mockServer.use(
       http.get(AUTHENTICATION_ME_ENDPOINT, () =>
         HttpResponse.json({ authenticated: true }),
       ),
     );
 
-    const authenticated = await authenticate();
+    const authenticated = await getAuthenticationStatus();
 
     expect(authenticated).toBe(true);
-    expect(useAuthenticationStore.getState().authenticated).toBe(true);
   });
 
-  test("sets authenticated false when /me returns authenticated false", async () => {
+  test("returns false when /me returns authenticated false", async () => {
     mockServer.use(
       http.get(AUTHENTICATION_ME_ENDPOINT, () =>
         HttpResponse.json({ authenticated: false }),
       ),
     );
 
-    const authenticated = await authenticate();
+    const authenticated = await getAuthenticationStatus();
 
     expect(authenticated).toBe(false);
-    expect(useAuthenticationStore.getState().authenticated).toBe(false);
   });
 
-  test("sets authenticated false when /me returns non-ok response", async () => {
+  test("returns false when /me returns non-ok response", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -50,15 +47,13 @@ describe("authenticate", () => {
       ),
     );
 
-    const authenticated = await authenticate();
+    const authenticated = await getAuthenticationStatus();
 
     expect(authenticated).toBe(false);
-    expect(useAuthenticationStore.getState().authenticated).toBe(false);
-
-    consoleErrorSpy.mockRestore();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
   });
 
-  test("sets authenticated false when /me payload is invalid", async () => {
+  test("returns false when /me payload is invalid", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -67,11 +62,9 @@ describe("authenticate", () => {
       http.get(AUTHENTICATION_ME_ENDPOINT, () => HttpResponse.json({})),
     );
 
-    const authenticated = await authenticate();
+    const authenticated = await getAuthenticationStatus();
 
     expect(authenticated).toBe(false);
-    expect(useAuthenticationStore.getState().authenticated).toBe(false);
-
-    consoleErrorSpy.mockRestore();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
   });
 });

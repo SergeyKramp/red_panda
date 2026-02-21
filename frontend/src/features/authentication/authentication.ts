@@ -1,6 +1,5 @@
 import { API_BASE_URL } from "../api";
 import z from "zod";
-import { useAuthenticationStore } from "./authentication-store";
 
 const LoginRequestZod = z.object({
   username: z.string(),
@@ -35,11 +34,7 @@ export async function login({
   });
 }
 
-/**
- * Check if user is authenticated according to backend session state.
- */
-export async function authenticate(): Promise<boolean> {
-  const setAuthenticated = useAuthenticationStore.getState().setAuthenticated;
+export async function getAuthenticationStatus(): Promise<boolean> {
   try {
     const response = await fetch(AUTHENTICATION_ME_ENDPOINT, {
       method: "GET",
@@ -48,16 +43,13 @@ export async function authenticate(): Promise<boolean> {
 
     if (!response.ok) {
       console.error("Authentication check failed with status", response.status);
-      setAuthenticated(false);
       return false;
     }
 
     const data = AuthStatusResponseZod.parse(await response.json());
-    setAuthenticated(data.authenticated);
     return data.authenticated;
   } catch (authCheckError) {
     console.error("Authentication check failed", authCheckError);
-    setAuthenticated(false);
     return false;
   }
 }
