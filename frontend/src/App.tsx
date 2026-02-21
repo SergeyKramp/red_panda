@@ -1,6 +1,6 @@
 import { useAuthenticationStatusQuery } from "features/authentication";
 import { AuthenticationForm } from "pages";
-import styles from "./app.module.css";
+import { Dashboard } from "pages/dashboard/dashboard";
 
 function App() {
   const { data: authenticated, isPending } = useAuthenticationStatusQuery();
@@ -14,14 +14,7 @@ function App() {
     return <AuthenticationForm />;
   }
 
-  return (
-    <main className={styles.appShell}>
-      <section className={styles.card}>
-        <h1 className={styles.headingPrimary}>Dashboard</h1>
-        <p className={styles.subtitle}>You are logged in.</p>
-      </section>
-    </main>
-  );
+  return <Dashboard />;
 }
 
 export default App;
