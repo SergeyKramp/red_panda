@@ -1,12 +1,11 @@
+import { Navbar } from "features/ui/navbar/navbar";
 import styles from "./dashboard.module.css";
 
 export function Dashboard() {
   return (
     <div className={styles.dashboardShell}>
       <div className={styles.navbarContainer}>
-        <nav>
-          <a href="/dashboard">Dashboard</a>
-        </nav>
+        <Navbar />
       </div>
       <main>
         <h1>Dashboard</h1>

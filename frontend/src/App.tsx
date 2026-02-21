@@ -1,3 +1,4 @@
+import "./global.module.css";
 import { useAuthenticationStatusQuery } from "features/authentication";
 import { AuthenticationForm } from "pages";
 import { Dashboard } from "pages/dashboard/dashboard";
