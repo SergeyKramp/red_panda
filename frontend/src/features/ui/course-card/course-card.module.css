@@ -39,13 +39,6 @@
   text-transform: uppercase;
 }
 
-.description {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-}
-
 .meta {
   margin-top: auto;
   display: flex;

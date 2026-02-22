@@ -1,0 +1,27 @@
+.gridViewport {
+  width: 100%;
+  max-height: 38rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.gridViewport::-webkit-scrollbar {
+  width: 0.625rem;
+}
+
+.gridViewport::-webkit-scrollbar-thumb {
+  background-color: rgba(160, 82, 45, 0.4);
+  border-radius: 0.625rem;
+}
+
+.gridViewport::-webkit-scrollbar-track {
+  background-color: rgba(245, 245, 220, 0.45);
+  border-radius: 0.625rem;
+}
