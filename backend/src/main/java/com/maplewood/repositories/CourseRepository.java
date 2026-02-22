@@ -15,5 +15,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query("SELECT c FROM Course c")
     Page<Course> findAllWithSpecializationAndPrerequisite(@NonNull Pageable pageable);
 
+    @EntityGraph(attributePaths = { "specialization", "prerequisite" })
     Page<Course> findAllBySemesterOrder(SemesterOrder order, @NonNull Pageable pageable);
 }

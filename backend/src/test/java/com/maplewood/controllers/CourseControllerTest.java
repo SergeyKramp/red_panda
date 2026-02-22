@@ -1,6 +1,7 @@
 package com.maplewood.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -46,6 +47,17 @@ class CourseControllerTest {
     @Test
     void givenNoAuthenticationWhenGettingAllCoursesThenUnauthorized() throws Exception {
         mockMvc.perform(get("/api/courses/").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Given: no authenticated user
+     * When: requesting semester-filtered courses from the API
+     * Then: the response should be unauthorized (401)
+     */
+    @Test
+    void givenNoAuthenticationWhenGettingSemesterCoursesThenUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/courses/semester").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -111,6 +123,37 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].code").value("BIO100"))
                 .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
+    }
+
+    /**
+     * Given: an authenticated user and semester courses in the service response
+     * When: requesting semester-filtered courses from the API
+     * Then: the response should contain the mapped course data and call the semester service
+     * method
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenAuthenticatedUserWhenGettingSemesterCoursesThenReturnsProperResponse()
+            throws Exception {
+        var science = new Specialization();
+        science.setId(1);
+        science.setName("Science");
+
+        var introBiology = createCourse(1, "BIO100", "Intro Biology", "Biology intro", 3.0, 3,
+                science, null, CourseType.CORE, 9, 10, SemesterOrder.SPRING);
+
+        when(courseService.findCoursesBySemesterOrder(any()))
+                .thenReturn(new PageImpl<>(List.of(introBiology), PageRequest.of(0, 100), 1));
+
+        mockMvc.perform(get("/api/courses/semester").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].code").value("BIO100"))
+                .andExpect(jsonPath("$[0].specialization").value("Science"))
+                .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
+
+        verify(courseService).findCoursesBySemesterOrder(any());
     }
 
     private Course createCourse(Integer id, String code, String name, String description, Double credits,

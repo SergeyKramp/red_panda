@@ -22,9 +22,9 @@ public class CourseService {
     }
 
     /* Get courses for a specific semester */
-    public Page<Course> findCoursesBySemesterOrder(SemesterOrder semesterOrder,
-            @NonNull Pageable pageable) {
-        return courseRepository.findAllBySemesterOrder(semesterOrder, pageable);
+    public Page<Course> findCoursesBySemesterOrder(@NonNull Pageable pageable) {
+        var currentSemesterOrder = SemesterOrder.getCurrentSemesterOrder();
+        return courseRepository.findAllBySemesterOrder(currentSemesterOrder, pageable);
     }
 
 }
