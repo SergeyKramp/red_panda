@@ -3,14 +3,18 @@ import styles from "./course-details.module.css";
 
 export interface CourseDetailsProps {
   course: CourseInfo;
+  onSignUpCourse?: (course: CourseInfo) => void;
 }
 
-export function CourseDetails({ course }: CourseDetailsProps) {
+export function CourseDetails({
+  course,
+  onSignUpCourse,
+}: CourseDetailsProps) {
   return (
     <div className={styles.courseDetails}>
       <p className={styles.courseDescription}>{course.description}</p>
 
-      <dl className={styles.detailsGrid}>
+      <dl className={styles.detailsList}>
         <div className={styles.detailItem}>
           <dt className={styles.detailLabel}>Credits</dt>
           <dd className={styles.detailValue}>{course.credits}</dd>
@@ -38,6 +42,14 @@ export function CourseDetails({ course }: CourseDetailsProps) {
           <dd className={styles.detailValue}>{course.prerequisite ?? "None"}</dd>
         </div>
       </dl>
+
+      <button
+        className={styles.signUpButton}
+        onClick={() => onSignUpCourse?.(course)}
+        type="button"
+      >
+        Sign Up for Course
+      </button>
     </div>
   );
 }

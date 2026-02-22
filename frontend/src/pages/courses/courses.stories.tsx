@@ -210,5 +210,8 @@ export const ViewCourseOpensDrawer: Story = {
     await expect(
       canvas.getByText("Foundational biology topics."),
     ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole("button", { name: "Sign Up for Course" }),
+    ).toBeInTheDocument();
   },
 };

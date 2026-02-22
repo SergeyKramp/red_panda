@@ -56,6 +56,7 @@ Prioritize correctness, clarity, and practical delivery over over-engineering.
   - Background color: #F5F5DC (Beige)
   - Text color: #333333 (Dark Gray)
 - Use the `global.module.css` CSS module before writing any new CSS. If you need to add a new color, add it to the `:root` selector in `global.module.css` and use the variable in your component's CSS module, but first check if the color you want to use is already defined in `global.module.css` before adding a new one.
+- Use semantic HTML elements and ARIA attributes to ensure accessibility.
 
 ## Quality Bar
 

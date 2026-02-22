@@ -75,7 +75,7 @@ export function Drawer({
           </button>
         </header>
 
-        {children}
+        <div className={styles.content}>{children}</div>
       </aside>
     </div>
   );

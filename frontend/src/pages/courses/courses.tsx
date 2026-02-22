@@ -62,6 +62,11 @@ export function Courses() {
       ? isErrorStudentCourses
       : isErrorCourses;
 
+  const handleSignUpCourse = (course: CourseInfo) => {
+    // Placeholder for future enrollment API integration.
+    void course;
+  };
+
   return (
     <section className={styles.pagePanel}>
       <header className={styles.header}>
@@ -96,7 +101,12 @@ export function Courses() {
         subtitle={selectedCourse ? selectedCourse.code : undefined}
         title={selectedCourse ? selectedCourse.name : "Course details"}
       >
-        {selectedCourse ? <CourseDetails course={selectedCourse} /> : null}
+        {selectedCourse ? (
+          <CourseDetails
+            course={selectedCourse}
+            onSignUpCourse={handleSignUpCourse}
+          />
+        ) : null}
       </Drawer>
     </section>
   );
