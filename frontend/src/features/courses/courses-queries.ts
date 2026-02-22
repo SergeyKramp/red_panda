@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { getCourses } from "./courses";
+import { getCourses, getSemesterCourses } from "./courses";
 
 export const coursesQueryKeys = {
   list: ["courses", "list"] as const,
+  semesterList: ["courses", "semester-list"] as const,
 };
 
 export interface UseCoursesQueryOptions {
@@ -13,6 +14,16 @@ export function useCoursesQuery({ enabled = true }: UseCoursesQueryOptions = {})
   return useQuery({
     queryKey: coursesQueryKeys.list,
     queryFn: getCourses,
+    enabled,
+  });
+}
+
+export function useSemesterCoursesQuery({
+  enabled = true,
+}: UseCoursesQueryOptions = {}) {
+  return useQuery({
+    queryKey: coursesQueryKeys.semesterList,
+    queryFn: getSemesterCourses,
     enabled,
   });
 }

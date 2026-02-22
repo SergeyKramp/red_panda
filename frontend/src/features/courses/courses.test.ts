@@ -2,9 +2,10 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, test } from "vitest";
 import { API_BASE_URL } from "features/api";
 import { mockServer } from "test-utils/mock-server";
-import { getCourses } from "./courses";
+import { getCourses, getSemesterCourses } from "./courses";
 
 const COURSES_ENDPOINT = `${API_BASE_URL}/api/courses/`;
+const SEMESTER_COURSES_ENDPOINT = `${API_BASE_URL}/api/courses/semester`;
 
 describe("getCourses", () => {
   test("returns mapped courses when API payload matches backend DTO", async () => {
@@ -44,7 +45,6 @@ describe("getCourses", () => {
         gradeLevelMin: 9,
         gradeLevelMax: 12,
         availableForYou: false,
-        availableThisSemester: false,
       },
     ]);
   });
@@ -69,5 +69,48 @@ describe("getCourses", () => {
     );
 
     await expect(getCourses()).rejects.toThrow();
+  });
+});
+
+describe("getSemesterCourses", () => {
+  test("returns mapped courses when semester endpoint payload matches backend DTO", async () => {
+    mockServer.use(
+      http.get(SEMESTER_COURSES_ENDPOINT, () =>
+        HttpResponse.json([
+          {
+            id: 2,
+            code: "CHEM-201",
+            name: "Chemistry Foundations",
+            description: "Core chemistry principles.",
+            credits: 1,
+            hoursPerWeek: 5,
+            specialization: "Science",
+            prerequisite: null,
+            courseType: "REGULAR",
+            gradeLevelMin: 10,
+            gradeLevelMax: 12,
+          },
+        ]),
+      ),
+    );
+
+    const courses = await getSemesterCourses();
+
+    expect(courses).toEqual([
+      {
+        id: 2,
+        code: "CHEM-201",
+        name: "Chemistry Foundations",
+        description: "Core chemistry principles.",
+        credits: 1,
+        hoursPerWeek: 5,
+        specialization: "Science",
+        prerequisite: null,
+        courseType: "REGULAR",
+        gradeLevelMin: 10,
+        gradeLevelMax: 12,
+        availableForYou: false,
+      },
+    ]);
   });
 });

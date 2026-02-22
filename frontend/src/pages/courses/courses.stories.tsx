@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-webpack5";
-import { CourseCardInfo } from "features/api";
+import { CourseInfo } from "features/api";
 import { expect, userEvent, within } from "storybook/test";
 import "../../global.module.css";
 import { Courses } from "./courses";
 
-const COURSE_CATALOG: CourseCardInfo[] = [
+const COURSE_CATALOG: CourseInfo[] = [
   {
     id: 1,
     code: "BIO-101",
@@ -17,7 +17,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableThisSemester: true,
     availableForYou: true,
   },
   {
@@ -32,7 +31,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 10,
     gradeLevelMax: 12,
-    availableThisSemester: true,
     availableForYou: false,
   },
   {
@@ -47,7 +45,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableThisSemester: false,
     availableForYou: true,
   },
   {
@@ -62,7 +59,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableThisSemester: true,
     availableForYou: true,
   },
   {
@@ -77,7 +73,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableThisSemester: false,
     availableForYou: false,
   },
   {
@@ -92,7 +87,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "ELECTIVE",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableThisSemester: true,
     availableForYou: true,
   },
   {
@@ -107,7 +101,6 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 10,
     gradeLevelMax: 12,
-    availableThisSemester: false,
     availableForYou: true,
   },
   {
@@ -122,9 +115,16 @@ const COURSE_CATALOG: CourseCardInfo[] = [
     courseType: "ELECTIVE",
     gradeLevelMin: 11,
     gradeLevelMax: 12,
-    availableThisSemester: true,
     availableForYou: false,
   },
+];
+
+const SEMESTER_COURSE_CATALOG: CourseInfo[] = [
+  COURSE_CATALOG[0],
+  COURSE_CATALOG[1],
+  COURSE_CATALOG[3],
+  COURSE_CATALOG[5],
+  COURSE_CATALOG[7],
 ];
 
 const meta: Meta<typeof Courses> = {
@@ -146,12 +146,14 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     courses: COURSE_CATALOG,
+    semesterCourses: SEMESTER_COURSE_CATALOG,
   },
 };
 
 export const FiltersChangeVisibleCards: Story = {
   args: {
     courses: COURSE_CATALOG,
+    semesterCourses: SEMESTER_COURSE_CATALOG,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

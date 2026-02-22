@@ -25,8 +25,7 @@ export const CourseDtoListZod = z.array(CourseDtoZod);
 
 export type CourseDto = z.infer<typeof CourseDtoZod>;
 
-export type CourseCardInfo = CourseDto & {
+export type CourseInfo = CourseDto & {
   // Frontend-only fields. Backend will provide these later.
   availableForYou: boolean;
-  availableThisSemester: boolean;
 };
