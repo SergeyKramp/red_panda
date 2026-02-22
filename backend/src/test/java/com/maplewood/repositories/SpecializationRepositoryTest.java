@@ -21,7 +21,7 @@ class SpecializationRepositoryTest {
     private SpecializationRepository specializationRepository;
 
     @Test
-    void findSpecializationIdsByCourseIds() {
+    void findSpecializationsByCourseIds() {
         var science = new Specialization();
         science.setName("Science");
         science = specializationRepository.save(science);
@@ -35,17 +35,18 @@ class SpecializationRepositoryTest {
         chemistry = courseRepository.save(chemistry);
         drawing = courseRepository.save(drawing);
 
-        var results = specializationRepository.findSpecializationIdsByCourseIds(
+        var results = specializationRepository.findSpecializationsByCourseIds(
                 java.util.List.of(chemistry.getId(), drawing.getId()));
 
         var map = results.stream()
                 .collect(Collectors.toMap(
                         SpecializationRepository.CourseSpecializationProjection::getCourseId,
-                        SpecializationRepository.CourseSpecializationProjection::getSpecializationId));
+                        SpecializationRepository.CourseSpecializationProjection::getSpecialization));
 
-        assertThat(map).isEqualTo(Map.of(
-                chemistry.getId(), science.getId(),
-                drawing.getId(), arts.getId()));
+        assertThat(map.get(chemistry.getId()).getId()).isEqualTo(science.getId());
+        assertThat(map.get(chemistry.getId()).getName()).isEqualTo(science.getName());
+        assertThat(map.get(drawing.getId()).getId()).isEqualTo(arts.getId());
+        assertThat(map.get(drawing.getId()).getName()).isEqualTo(arts.getName());
     }
 
     private Course createCourse(String code, Specialization specialization) {
