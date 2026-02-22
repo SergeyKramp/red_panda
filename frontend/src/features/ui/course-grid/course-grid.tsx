@@ -1,10 +1,10 @@
 import { CourseCard } from "features/ui/course-card/course-card";
-import { CourseCardInfo } from "features/api";
+import { CourseInfo } from "features/api";
 import styles from "./course-grid.module.css";
 
 export interface CourseGridProps {
-  courses: CourseCardInfo[];
-  onViewCourse?: (course: CourseCardInfo) => void;
+  courses: CourseInfo[];
+  onViewCourse?: (course: CourseInfo) => void;
 }
 
 export function CourseGrid({ courses, onViewCourse }: CourseGridProps) {

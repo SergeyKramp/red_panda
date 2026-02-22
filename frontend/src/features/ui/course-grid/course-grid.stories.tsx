@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-webpack5";
-import type { CourseCardInfo } from "features/api";
+import type { CourseInfo } from "features/api";
 import "../../../global.module.css";
 import { CourseGrid } from "./course-grid";
 
-function createCourses(count: number): CourseCardInfo[] {
+function createCourses(count: number): CourseInfo[] {
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
     code: `CRS-${index + 101}`,
@@ -18,7 +18,6 @@ function createCourses(count: number): CourseCardInfo[] {
     gradeLevelMin: 9,
     gradeLevelMax: 12,
     availableForYou: index % 2 === 0,
-    availableThisSemester: index % 3 !== 0,
   }));
 }
 
