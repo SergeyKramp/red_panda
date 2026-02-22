@@ -5,50 +5,42 @@ import {
   useStudentCoursesQuery,
 } from "features/courses";
 import {
+  CourseDetails,
   CourseFilter,
   CourseFilters,
   CourseGrid,
+  Drawer,
 } from "features/ui";
 import { useMemo, useState } from "react";
 import styles from "./courses.module.css";
 
-export interface CoursesProps {
-  courses?: CourseInfo[];
-  semesterCourses?: CourseInfo[];
-  studentCourses?: CourseInfo[];
-}
-
-export function Courses({
-  courses: providedCourses,
-  semesterCourses: providedSemesterCourses,
-  studentCourses: providedStudentCourses,
-}: CoursesProps) {
+export function Courses() {
   const [activeFilter, setActiveFilter] = useState<CourseFilter>("all");
+  const [selectedCourse, setSelectedCourse] = useState<CourseInfo | null>(null);
   const {
     data: queriedCourses,
     isPending: isPendingCourses,
     isError: isErrorCourses,
-  } = useCoursesQuery({
-    enabled: !providedCourses,
-  });
+  } = useCoursesQuery();
   const {
     data: queriedSemesterCourses,
     isPending: isPendingSemesterCourses,
     isError: isErrorSemesterCourses,
   } = useSemesterCoursesQuery({
-    enabled: !providedSemesterCourses && activeFilter === "this-semester",
+    enabled: activeFilter === "this-semester",
   });
   const {
     data: queriedStudentCourses,
     isPending: isPendingStudentCourses,
     isError: isErrorStudentCourses,
   } = useStudentCoursesQuery({
-    enabled: !providedStudentCourses && activeFilter === "available-for-you",
+    enabled: activeFilter === "available-for-you",
   });
 
-  const allCourses = providedCourses ?? queriedCourses ?? [];
-  const semesterCourses = providedSemesterCourses ?? queriedSemesterCourses ?? [];
-  const studentCourses = providedStudentCourses ?? queriedStudentCourses ?? [];
+  const allCourses = queriedCourses ?? [];
+  const semesterCourses = queriedSemesterCourses ?? [];
+  const studentCourses = queriedStudentCourses ?? [];
+
   const activeCourses = useMemo(() => {
     if (activeFilter === "this-semester") {
       return semesterCourses;
@@ -59,10 +51,6 @@ export function Courses({
     return allCourses;
   }, [activeFilter, allCourses, semesterCourses, studentCourses]);
 
-  const isUsingProvidedData =
-    (activeFilter === "this-semester" && !!providedSemesterCourses) ||
-    (activeFilter === "available-for-you" && !!providedStudentCourses) ||
-    (activeFilter === "all" && !!providedCourses);
   const isPending = activeFilter === "this-semester"
     ? isPendingSemesterCourses
     : activeFilter === "available-for-you"
@@ -73,6 +61,11 @@ export function Courses({
     : activeFilter === "available-for-you"
       ? isErrorStudentCourses
       : isErrorCourses;
+
+  const handleSignUpCourse = (course: CourseInfo) => {
+    // Placeholder for future enrollment API integration.
+    void course;
+  };
 
   return (
     <section className={styles.pagePanel}>
@@ -86,15 +79,35 @@ export function Courses({
         onFilterChange={setActiveFilter}
       />
 
-      {!isUsingProvidedData && isPending ? (
+      {isPending ? (
         <p className={styles.stateText}>Loading courses...</p>
       ) : null}
 
-      {!isUsingProvidedData && isError ? (
+      {isError ? (
         <p className={styles.stateText}>Failed to load courses.</p>
       ) : null}
 
-      {!isPending && !isError ? <CourseGrid courses={activeCourses} /> : null}
+      {!isPending && !isError ? (
+        <CourseGrid
+          courses={activeCourses}
+          onViewCourse={(course) => setSelectedCourse(course)}
+        />
+      ) : null}
+
+      <Drawer
+        closeLabel="Close course details"
+        isOpen={selectedCourse !== null}
+        onClose={() => setSelectedCourse(null)}
+        subtitle={selectedCourse ? selectedCourse.code : undefined}
+        title={selectedCourse ? selectedCourse.name : "Course details"}
+      >
+        {selectedCourse ? (
+          <CourseDetails
+            course={selectedCourse}
+            onSignUpCourse={handleSignUpCourse}
+          />
+        ) : null}
+      </Drawer>
     </section>
   );
 }
