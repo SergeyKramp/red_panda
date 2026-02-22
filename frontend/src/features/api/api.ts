@@ -11,6 +11,8 @@ export const CourseCardInfoZod = z.object({
   name: z.string().min(1),
   credits: z.number().int().nonnegative(),
   specialization: z.string().min(1),
+  availableForYou: z.boolean(),
+  availableThisSemester: z.boolean(),
 });
 
 export const CourseCardInfoListZod = z.array(CourseCardInfoZod);

@@ -10,6 +10,8 @@ function createCourses(count: number): CourseCardInfo[] {
     credits: (index % 2) + 1,
     specialization:
       index % 3 === 0 ? "Science" : index % 3 === 1 ? "Math" : "Humanities",
+    availableForYou: index % 2 === 0,
+    availableThisSemester: index % 3 !== 0,
   }));
 }
 
