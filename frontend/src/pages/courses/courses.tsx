@@ -2,6 +2,7 @@ import { CourseInfo } from "features/api";
 import {
   useCoursesQuery,
   useSemesterCoursesQuery,
+  useStudentCoursesQuery,
 } from "features/courses";
 import {
   CourseFilter,
@@ -14,11 +15,13 @@ import styles from "./courses.module.css";
 export interface CoursesProps {
   courses?: CourseInfo[];
   semesterCourses?: CourseInfo[];
+  studentCourses?: CourseInfo[];
 }
 
 export function Courses({
   courses: providedCourses,
   semesterCourses: providedSemesterCourses,
+  studentCourses: providedStudentCourses,
 }: CoursesProps) {
   const [activeFilter, setActiveFilter] = useState<CourseFilter>("all");
   const {
@@ -35,27 +38,41 @@ export function Courses({
   } = useSemesterCoursesQuery({
     enabled: !providedSemesterCourses && activeFilter === "this-semester",
   });
+  const {
+    data: queriedStudentCourses,
+    isPending: isPendingStudentCourses,
+    isError: isErrorStudentCourses,
+  } = useStudentCoursesQuery({
+    enabled: !providedStudentCourses && activeFilter === "available-for-you",
+  });
 
   const allCourses = providedCourses ?? queriedCourses ?? [];
   const semesterCourses = providedSemesterCourses ?? queriedSemesterCourses ?? [];
-  const activeCourses =
-    activeFilter === "this-semester" ? semesterCourses : allCourses;
-
-  const filteredCourses = useMemo(() => {
-    if (activeFilter === "available-for-you") {
-      return activeCourses.filter((course) => course.availableForYou);
+  const studentCourses = providedStudentCourses ?? queriedStudentCourses ?? [];
+  const activeCourses = useMemo(() => {
+    if (activeFilter === "this-semester") {
+      return semesterCourses;
     }
-
-    return activeCourses;
-  }, [activeCourses, activeFilter]);
+    if (activeFilter === "available-for-you") {
+      return studentCourses;
+    }
+    return allCourses;
+  }, [activeFilter, allCourses, semesterCourses, studentCourses]);
 
   const isUsingProvidedData =
     (activeFilter === "this-semester" && !!providedSemesterCourses) ||
-    (activeFilter !== "this-semester" && !!providedCourses);
-  const isPending =
-    activeFilter === "this-semester" ? isPendingSemesterCourses : isPendingCourses;
-  const isError =
-    activeFilter === "this-semester" ? isErrorSemesterCourses : isErrorCourses;
+    (activeFilter === "available-for-you" && !!providedStudentCourses) ||
+    (activeFilter === "all" && !!providedCourses);
+  const isPending = activeFilter === "this-semester"
+    ? isPendingSemesterCourses
+    : activeFilter === "available-for-you"
+      ? isPendingStudentCourses
+      : isPendingCourses;
+  const isError = activeFilter === "this-semester"
+    ? isErrorSemesterCourses
+    : activeFilter === "available-for-you"
+      ? isErrorStudentCourses
+      : isErrorCourses;
 
   return (
     <section className={styles.pagePanel}>
@@ -77,7 +94,7 @@ export function Courses({
         <p className={styles.stateText}>Failed to load courses.</p>
       ) : null}
 
-      {!isPending && !isError ? <CourseGrid courses={filteredCourses} /> : null}
+      {!isPending && !isError ? <CourseGrid courses={activeCourses} /> : null}
     </section>
   );
 }

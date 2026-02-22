@@ -17,7 +17,6 @@ function createCourses(count: number): CourseInfo[] {
     courseType: index % 2 === 0 ? "REGULAR" : "ELECTIVE",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: index % 2 === 0,
   }));
 }
 
