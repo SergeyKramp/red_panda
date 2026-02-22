@@ -38,12 +38,23 @@ class CourseControllerTest {
     @MockBean
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * Given: no authenticated user
+     * When: requesting all courses from the API
+     * Then: the response should be unauthorized (401)
+     */
     @Test
     void givenNoAuthenticationWhenGettingAllCoursesThenUnauthorized() throws Exception {
         mockMvc.perform(get("/api/courses/").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * Given: an authenticated user and multiple courses in the service response
+     * When: requesting all courses from the API
+     * Then: the response should contain the mapped course data including specialization and
+     * prerequisite names
+     */
     @Test
     @WithMockUser(username = "test-user")
     void givenAuthenticatedUserWhenGettingAllCoursesThenReturnsProperResponse() throws Exception {
@@ -77,6 +88,11 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$[1].prerequisite").value("Intro Biology"));
     }
 
+    /**
+     * Given: an authenticated user and a course with no prerequisite
+     * When: requesting all courses from the API
+     * Then: the course prerequisite field should be null in the response
+     */
     @Test
     @WithMockUser(username = "test-user")
     void givenCourseWithoutPrerequisiteWhenGettingAllCoursesThenPrerequisiteIsNull() throws Exception {
