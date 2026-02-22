@@ -39,7 +39,7 @@ class StudentServiceTest {
 
         var eligible = studentService.canTakeCourse(student, course);
 
-        assertThat(eligible).isFalse();
+        assertThat(eligible).isPresent();
         verify(studentCourseHistoryRepository, never()).findPassedCourseIdsByStudentId(1);
     }
 
@@ -60,7 +60,7 @@ class StudentServiceTest {
 
         var eligible = studentService.canTakeCourse(student, course);
 
-        assertThat(eligible).isFalse();
+        assertThat(eligible).isPresent();
     }
 
     /**
@@ -76,12 +76,11 @@ class StudentServiceTest {
         var student = buildStudent(1, 10);
         var course = buildCourse(101, 9, 12, prerequisite);
 
-        when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1))
-                .thenReturn(Set.of());
+        when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
 
         var eligible = studentService.canTakeCourse(student, course);
 
-        assertThat(eligible).isFalse();
+        assertThat(eligible).isPresent();
     }
 
     /**
@@ -96,14 +95,13 @@ class StudentServiceTest {
         var student = buildStudent(1, 10);
         var course = buildCourse(101, 9, 12, null);
 
-        when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1))
-                .thenReturn(Set.of());
+        when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
         when(studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(1))
                 .thenReturn(5L);
 
         var eligible = studentService.canTakeCourse(student, course);
 
-        assertThat(eligible).isFalse();
+        assertThat(eligible).isPresent();
     }
 
     /**
@@ -126,7 +124,7 @@ class StudentServiceTest {
 
         var eligible = studentService.canTakeCourse(student, course);
 
-        assertThat(eligible).isTrue();
+        assertThat(eligible).isEmpty();
     }
 
     private Student buildStudent(Integer id, Integer gradeLevel) {
@@ -136,10 +134,7 @@ class StudentServiceTest {
         return student;
     }
 
-    private Course buildCourse(
-            Integer id,
-            Integer gradeLevelMin,
-            Integer gradeLevelMax,
+    private Course buildCourse(Integer id, Integer gradeLevelMin, Integer gradeLevelMax,
             Course prerequisite) {
         var course = new Course();
         course.setId(id);
