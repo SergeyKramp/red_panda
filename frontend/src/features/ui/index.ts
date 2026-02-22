@@ -3,3 +3,4 @@ export * from "./navbar";
 export * from "./course-card";
 export * from "./course-grid";
 export * from "./course-filters";
+export * from "./drawer";
