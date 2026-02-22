@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-webpack5";
-import { CourseInfo } from "features/api";
+import { API_BASE_URL, CourseInfo } from "features/api";
+import { http, HttpResponse } from "msw";
 import { expect, userEvent, within } from "storybook/test";
 import "../../global.module.css";
 import { Courses } from "./courses";
@@ -127,6 +128,18 @@ const STUDENT_COURSE_CATALOG: CourseInfo[] = [
   COURSE_CATALOG[6],
 ];
 
+const coursesHandlers = [
+  http.get(`${API_BASE_URL}/api/courses/`, async () => {
+    return HttpResponse.json(COURSE_CATALOG);
+  }),
+  http.get(`${API_BASE_URL}/api/courses/semester`, async () => {
+    return HttpResponse.json(SEMESTER_COURSE_CATALOG);
+  }),
+  http.get(`${API_BASE_URL}/api/courses/student`, async () => {
+    return HttpResponse.json(STUDENT_COURSE_CATALOG);
+  }),
+];
+
 const meta: Meta<typeof Courses> = {
   title: "Pages/Courses",
   component: Courses,
@@ -144,24 +157,26 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    courses: COURSE_CATALOG,
-    semesterCourses: SEMESTER_COURSE_CATALOG,
-    studentCourses: STUDENT_COURSE_CATALOG,
+  parameters: {
+    msw: {
+      handlers: coursesHandlers,
+    },
   },
 };
 
 export const FiltersChangeVisibleCards: Story = {
-  args: {
-    courses: COURSE_CATALOG,
-    semesterCourses: SEMESTER_COURSE_CATALOG,
-    studentCourses: STUDENT_COURSE_CATALOG,
+  parameters: {
+    msw: {
+      handlers: coursesHandlers,
+    },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
-    await expect(canvas.getByText("Chemistry Foundations")).toBeInTheDocument();
-    await expect(canvas.getByText("Algebra II")).toBeInTheDocument();
+    await expect(
+      await canvas.findByText("Chemistry Foundations"),
+    ).toBeInTheDocument();
+    await expect(await canvas.findByText("Algebra II")).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole("button", { name: "This Semester" }));
     await expect(canvas.getByText("Chemistry Foundations")).toBeInTheDocument();
@@ -172,5 +187,28 @@ export const FiltersChangeVisibleCards: Story = {
     );
     await expect(canvas.getByText("Algebra II")).toBeInTheDocument();
     await expect(canvas.queryByText("Chemistry Foundations")).not.toBeInTheDocument();
+  },
+};
+
+export const ViewCourseOpensDrawer: Story = {
+  parameters: {
+    msw: {
+      handlers: coursesHandlers,
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(
+      await canvas.findByText("Introduction to Biology"),
+    ).toBeInTheDocument();
+    await userEvent.click(canvas.getAllByRole("button", { name: "View Course" })[0]);
+
+    await expect(
+      canvas.getByRole("dialog", { name: "Introduction to Biology" }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByText("Foundational biology topics."),
+    ).toBeInTheDocument();
   },
 };
