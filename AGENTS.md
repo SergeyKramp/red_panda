@@ -36,6 +36,7 @@ Prioritize correctness, clarity, and practical delivery over over-engineering.
       // test implementation
   }
   ```
+- Don't use `@Param` in repository methods. Instead, rely on the order of parameters to match the query placeholders. This keeps the code cleaner and reduces boilerplate.
 
 
 
