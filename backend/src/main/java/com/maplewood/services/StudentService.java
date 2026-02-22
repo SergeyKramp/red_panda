@@ -6,7 +6,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.Student;
+import com.maplewood.domain.StudentEnrollmentStatus;
 import com.maplewood.repositories.StudentCourseHistoryRepository;
+import com.maplewood.repositories.StudentEnrollmentRepository;
 import com.maplewood.repositories.StudentRepository;
 
 @Service
@@ -15,11 +17,14 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final StudentCourseHistoryRepository studentCourseHistoryRepository;
+    private final StudentEnrollmentRepository studentEnrollmentRepository;
 
     public StudentService(StudentRepository studentRepository,
-            StudentCourseHistoryRepository studentCourseHistoryRepository) {
+            StudentCourseHistoryRepository studentCourseHistoryRepository,
+            StudentEnrollmentRepository studentEnrollmentRepository) {
         this.studentRepository = studentRepository;
         this.studentCourseHistoryRepository = studentCourseHistoryRepository;
+        this.studentEnrollmentRepository = studentEnrollmentRepository;
     }
 
     public Student findStudentById(@NonNull Integer studentId) throws RuntimeException {
@@ -64,6 +69,12 @@ public class StudentService {
             return Optional.of(EnrollmentErrorCode.COURSE_ALREADY_PASSED);
         }
 
+        // Check if the student is already enrolled in this course
+        if (studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(student.getId(),
+                course.getId(), StudentEnrollmentStatus.ENROLLED)) {
+            return Optional.of(EnrollmentErrorCode.COURSE_ALREADY_ENROLLED);
+        }
+
         // Check if the student has taken the prerequisite course
         if (course.getPrerequisite() != null) {
             var prerequisiteCourseId = course.getPrerequisite().getId();
@@ -85,6 +96,6 @@ public class StudentService {
     }
 
     public enum EnrollmentErrorCode {
-        INVALID_INPUT, GRADE_LEVEL_MISMATCH, COURSE_ALREADY_PASSED, PREREQUISITE_NOT_MET, MAX_COURSES_REACHED
+        INVALID_INPUT, GRADE_LEVEL_MISMATCH, COURSE_ALREADY_PASSED, COURSE_ALREADY_ENROLLED, PREREQUISITE_NOT_MET, MAX_COURSES_REACHED
     }
 }

@@ -2,6 +2,7 @@ package com.maplewood.services;
 
 import org.springframework.stereotype.Service;
 import com.maplewood.repositories.CourseRepository;
+import com.maplewood.repositories.StudentEnrollmentRepository;
 import jakarta.transaction.Transactional;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.SemesterOrder;
@@ -16,10 +17,15 @@ import org.springframework.lang.NonNull;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final StudentService studentService;
+    private final StudentEnrollmentRepository studentEnrollmentRepository;
 
-    public CourseService(CourseRepository courseRepository, StudentService studentService) {
+    public CourseService(
+            CourseRepository courseRepository,
+            StudentService studentService,
+            StudentEnrollmentRepository studentEnrollmentRepository) {
         this.courseRepository = courseRepository;
         this.studentService = studentService;
+        this.studentEnrollmentRepository = studentEnrollmentRepository;
     }
 
     /* Get all courses */
@@ -67,6 +73,12 @@ public class CourseService {
             return messageCodeOpt.map(Enum::name); // Convert the EnrollmentErrorCode to its name as
                                                    // a string
         } else {
+            var affectedRows = studentEnrollmentRepository.addEnrollment(
+                    Objects.requireNonNull(student.getId()),
+                    Objects.requireNonNull(course.get().getId()));
+            if (affectedRows == 0) {
+                throw new RuntimeException("No active semester found for enrollment");
+            }
 
             return Optional.empty();
         }

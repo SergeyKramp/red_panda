@@ -12,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.Student;
+import com.maplewood.domain.StudentEnrollmentStatus;
 import com.maplewood.repositories.StudentCourseHistoryRepository;
+import com.maplewood.repositories.StudentEnrollmentRepository;
 import com.maplewood.repositories.StudentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,6 +23,8 @@ class StudentServiceTest {
     private StudentRepository studentRepository;
     @Mock
     private StudentCourseHistoryRepository studentCourseHistoryRepository;
+    @Mock
+    private StudentEnrollmentRepository studentEnrollmentRepository;
 
     @InjectMocks
     private StudentService studentService;
@@ -64,6 +68,27 @@ class StudentServiceTest {
     }
 
     /**
+     * Given: a student currently enrolled in the target course
+     *
+     * When: canTakeCourse is called
+     *
+     * Then: eligibility should be rejected to prevent duplicate active enrollment
+     */
+    @Test
+    void canTakeCourseRejectsAlreadyEnrolledCourse() {
+        var student = buildStudent(1, 10);
+        var course = buildCourse(101, 9, 12, null);
+
+        when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
+        when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
+                StudentEnrollmentStatus.ENROLLED)).thenReturn(true);
+
+        var eligible = studentService.canTakeCourse(student, course);
+
+        assertThat(eligible).contains(StudentService.EnrollmentErrorCode.COURSE_ALREADY_ENROLLED);
+    }
+
+    /**
      * Given: a course with a prerequisite and a student who did not pass it
      *
      * When: canTakeCourse is called
@@ -77,6 +102,8 @@ class StudentServiceTest {
         var course = buildCourse(101, 9, 12, prerequisite);
 
         when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
+        when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
+                StudentEnrollmentStatus.ENROLLED)).thenReturn(false);
 
         var eligible = studentService.canTakeCourse(student, course);
 
@@ -96,6 +123,8 @@ class StudentServiceTest {
         var course = buildCourse(101, 9, 12, null);
 
         when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
+        when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
+                StudentEnrollmentStatus.ENROLLED)).thenReturn(false);
         when(studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(1))
                 .thenReturn(5L);
 
@@ -119,6 +148,8 @@ class StudentServiceTest {
 
         when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1))
                 .thenReturn(Set.of(100));
+        when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
+                StudentEnrollmentStatus.ENROLLED)).thenReturn(false);
         when(studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(1))
                 .thenReturn(3L);
 
