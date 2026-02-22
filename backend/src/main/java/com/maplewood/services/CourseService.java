@@ -2,9 +2,13 @@ package com.maplewood.services;
 
 import org.springframework.stereotype.Service;
 import com.maplewood.repositories.CourseRepository;
+import com.maplewood.repositories.StudentEnrollmentRepository;
+import jakarta.transaction.Transactional;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.SemesterOrder;
+import com.maplewood.domain.Student;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
@@ -13,10 +17,15 @@ import org.springframework.lang.NonNull;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final StudentService studentService;
+    private final StudentEnrollmentRepository studentEnrollmentRepository;
 
-    public CourseService(CourseRepository courseRepository, StudentService studentService) {
+    public CourseService(
+            CourseRepository courseRepository,
+            StudentService studentService,
+            StudentEnrollmentRepository studentEnrollmentRepository) {
         this.courseRepository = courseRepository;
         this.studentService = studentService;
+        this.studentEnrollmentRepository = studentEnrollmentRepository;
     }
 
     /* Get all courses */
@@ -44,9 +53,37 @@ public class CourseService {
         var currentSemesterCourses = courseRepository
                 .findAllCoursesBySemesterOrder(Objects.requireNonNull(currentSemesterOrder));
         var eligibleCoursesIds = currentSemesterCourses.stream()
-                .filter(course -> studentService.canTakeCourse(student, course)).map(Course::getId)
-                .toList();
+                .filter(course -> studentService.canTakeCourse(student, course).isEmpty())
+                .map(Course::getId).toList();
 
         return courseRepository.findByIdIn(eligibleCoursesIds, pageable);
+    }
+
+    @Transactional
+    public Optional<String> enrollStudentInCourse(Student student, Integer courseId)
+            throws RuntimeException {
+        var course = courseRepository.findById(Objects.requireNonNull(courseId));
+        if (course.isEmpty()) {
+            throw new RuntimeException("Course not found");
+        }
+
+        var messageCodeOpt = studentService.canTakeCourse(student, course.get());
+
+        if (messageCodeOpt.isPresent()) {
+            return messageCodeOpt.map(Enum::name); // Convert the EnrollmentErrorCode to its name as
+                                                   // a string
+        } else {
+            var affectedRows = studentEnrollmentRepository.addEnrollment(
+                    Objects.requireNonNull(student.getId()),
+                    Objects.requireNonNull(course.get().getId()));
+            if (affectedRows == 0) {
+                throw new RuntimeException("No active semester found for enrollment");
+            }
+
+            return Optional.empty();
+        }
+
+
+
     }
 }
