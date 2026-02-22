@@ -1,6 +1,7 @@
 package com.maplewood.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.nullValue;
@@ -58,6 +59,17 @@ class CourseControllerTest {
     @Test
     void givenNoAuthenticationWhenGettingSemesterCoursesThenUnauthorized() throws Exception {
         mockMvc.perform(get("/api/courses/semester").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Given: no authenticated user
+     * When: requesting student-specific courses from the API
+     * Then: the response should be unauthorized (401)
+     */
+    @Test
+    void givenNoAuthenticationWhenGettingStudentCoursesThenUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/courses/s/7").param("id", "7").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -154,6 +166,37 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
 
         verify(courseService).findCoursesBySemesterOrder(any());
+    }
+
+    /**
+     * Given: an authenticated user and student-eligible courses in the service response
+     * When: requesting student-specific courses from the API
+     * Then: the response should contain mapped course data and call the student service method
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenAuthenticatedUserWhenGettingStudentCoursesThenReturnsProperResponse()
+            throws Exception {
+        var science = new Specialization();
+        science.setId(1);
+        science.setName("Science");
+
+        var writing = createCourse(5, "ENG101", "Writing I", "Essay fundamentals", 3.0, 3, science,
+                null, CourseType.CORE, 9, 12, SemesterOrder.FALL);
+
+        when(courseService.findCoursesForStudent(eq(7), any()))
+                .thenReturn(new PageImpl<>(List.of(writing), PageRequest.of(0, 100), 1));
+
+        mockMvc.perform(get("/api/courses/s/7").param("id", "7").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(5))
+                .andExpect(jsonPath("$[0].code").value("ENG101"))
+                .andExpect(jsonPath("$[0].name").value("Writing I"))
+                .andExpect(jsonPath("$[0].specialization").value("Science"))
+                .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
+
+        verify(courseService).findCoursesForStudent(eq(7), any());
     }
 
     private Course createCourse(Integer id, String code, String name, String description, Double credits,
