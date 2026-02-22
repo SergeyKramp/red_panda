@@ -60,6 +60,69 @@ class CourseRepositoryTest {
         var pageable = PageRequest.of(0, 10, Sort.by("code").ascending());
         var fallCourses = courseRepository.findAllBySemesterOrder(SemesterOrder.FALL, pageable);
         assertThat(fallCourses.getContent()).hasSize(1);
+        assertThat(fallCourses.getContent()).extracting(Course::getCode).containsExactly("FALL101");
+        assertThat(fallCourses.getContent()).extracting(Course::getCode).doesNotContain("SPR101");
+    }
+
+    /**
+     * Given: fall and spring courses where a fall course has a prerequisite
+     *
+     * When: findAllBySemesterOrder is called with the fall semester
+     *
+     * Then: only fall courses are returned and specialization/prerequisite are eagerly loaded
+     */
+    @Test
+    void bySemesterOrderLoadsAssociationsAndExcludesOtherOrders() {
+        var specialization = new Specialization();
+        specialization.setName("Science");
+        specialization = entityManager.persistFlushFind(specialization);
+
+        var fallPrerequisite = new Course();
+        fallPrerequisite.setCode("BIO100");
+        fallPrerequisite.setName("Biology Basics");
+        fallPrerequisite.setCredits(3.0);
+        fallPrerequisite.setHoursPerWeek(3);
+        fallPrerequisite.setSemesterOrder(SemesterOrder.FALL);
+        fallPrerequisite.setCourseType(CourseType.CORE);
+        fallPrerequisite.setSpecialization(specialization);
+        fallPrerequisite = courseRepository.save(fallPrerequisite);
+
+        var fallAdvanced = new Course();
+        fallAdvanced.setCode("BIO200");
+        fallAdvanced.setName("Advanced Biology");
+        fallAdvanced.setCredits(3.0);
+        fallAdvanced.setHoursPerWeek(3);
+        fallAdvanced.setSemesterOrder(SemesterOrder.FALL);
+        fallAdvanced.setCourseType(CourseType.CORE);
+        fallAdvanced.setSpecialization(specialization);
+        fallAdvanced.setPrerequisite(fallPrerequisite);
+        courseRepository.save(fallAdvanced);
+
+        var springCourse = new Course();
+        springCourse.setCode("SPR101");
+        springCourse.setName("Spring Course");
+        springCourse.setCredits(3.0);
+        springCourse.setHoursPerWeek(3);
+        springCourse.setSemesterOrder(SemesterOrder.SPRING);
+        springCourse.setCourseType(CourseType.ELECTIVE);
+        springCourse.setSpecialization(specialization);
+        courseRepository.save(springCourse);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var pageable = PageRequest.of(0, 10, Sort.by("code").ascending());
+        var fallCourses = courseRepository.findAllBySemesterOrder(SemesterOrder.FALL, pageable);
+
+        assertThat(fallCourses.getContent()).extracting(Course::getCode).containsExactly("BIO100",
+                "BIO200");
+        assertThat(fallCourses.getContent()).extracting(Course::getCode).doesNotContain("SPR101");
+
+        var loadedAdvancedCourse = fallCourses.getContent().stream()
+                .filter(course -> course.getCode().equals("BIO200")).findFirst().orElseThrow();
+
+        assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getSpecialization())).isTrue();
+        assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getPrerequisite())).isTrue();
     }
 
     /**
@@ -102,9 +165,7 @@ class CourseRepositoryTest {
         var pageable = PageRequest.of(0, 10, Sort.by("code").ascending());
         var courses = courseRepository.findAllWithSpecializationAndPrerequisite(pageable);
         var loadedAdvancedCourse = courses.getContent().stream()
-                .filter(course -> course.getCode().equals("BIO200"))
-                .findFirst()
-                .orElseThrow();
+                .filter(course -> course.getCode().equals("BIO200")).findFirst().orElseThrow();
 
         assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getSpecialization())).isTrue();
         assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getPrerequisite())).isTrue();
@@ -144,10 +205,8 @@ class CourseRepositoryTest {
         assertThat(persistedCourse.getSemesterOrder()).isEqualTo(SemesterOrder.SPRING);
 
         var rawRow = (Object[]) entityManager.getEntityManager()
-                .createNativeQuery(
-                        "SELECT course_type, semester_order FROM courses WHERE id = :id")
-                .setParameter("id", course.getId())
-                .getSingleResult();
+                .createNativeQuery("SELECT course_type, semester_order FROM courses WHERE id = :id")
+                .setParameter("id", course.getId()).getSingleResult();
 
         assertThat(rawRow[0]).isEqualTo("core");
         assertThat(((Number) rawRow[1]).intValue()).isEqualTo(SemesterOrder.SPRING.getCode());
