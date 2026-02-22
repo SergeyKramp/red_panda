@@ -6,9 +6,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -210,6 +213,61 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
 
         verify(courseService).findCoursesForStudent(eq(7), any());
+    }
+
+    /**
+     * Given: an authenticated user linked to a student and an enrollable course
+     *
+     * When: posting to the enroll endpoint
+     *
+     * Then: the response should be 200 OK
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenEligibleEnrollmentWhenPostingEnrollThenReturnsOk() throws Exception {
+        var student = new Student();
+        student.setId(7);
+
+        var user = new AppUser();
+        user.setUsername("test-user");
+        user.setStudent(student);
+
+        when(appUserRepository.findByUsername("test-user")).thenReturn(Optional.of(user));
+        when(courseService.enrollStudentInCourse(student, 101)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/courses/enroll/c/101")
+                .with(csrf())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Given: an authenticated user linked to a student and an invalid enrollment request
+     *
+     * When: posting to the enroll endpoint
+     *
+     * Then: the response should be 409 with an enrollment error payload
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenRejectedEnrollmentWhenPostingEnrollThenReturnsConflict() throws Exception {
+        var student = new Student();
+        student.setId(7);
+
+        var user = new AppUser();
+        user.setUsername("test-user");
+        user.setStudent(student);
+
+        when(appUserRepository.findByUsername("test-user")).thenReturn(Optional.of(user));
+        when(courseService.enrollStudentInCourse(student, 101))
+                .thenReturn(Optional.of("COURSE_ALREADY_ENROLLED"));
+
+        mockMvc.perform(post("/api/courses/enroll/c/101")
+                .with(csrf())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messageCode").value("COURSE_ALREADY_ENROLLED"))
+                .andExpect(jsonPath("$.courseId").value(101));
     }
 
     private Course createCourse(Integer id, String code, String name, String description, Double credits,
