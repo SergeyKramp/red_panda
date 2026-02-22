@@ -3,6 +3,7 @@ package com.maplewood.domain;
 import java.time.Instant;
 
 import org.hibernate.annotations.Check;
+import com.maplewood.persistence.converter.CourseTypeConverter;
 import com.maplewood.persistence.converter.InstantStringConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -51,8 +52,9 @@ public class Course {
     @JoinColumn(name = "prerequisite_id")
     private Course prerequisite;
 
+    @Convert(converter = CourseTypeConverter.class)
     @Column(name = "course_type", nullable = false, length = 20)
-    private String courseType;
+    private CourseType courseType;
 
     @Column(name = "grade_level_min")
     private Integer gradeLevelMin;
@@ -132,11 +134,11 @@ public class Course {
         this.prerequisite = prerequisite;
     }
 
-    public String getCourseType() {
+    public CourseType getCourseType() {
         return courseType;
     }
 
-    public void setCourseType(String courseType) {
+    public void setCourseType(CourseType courseType) {
         this.courseType = courseType;
     }
 

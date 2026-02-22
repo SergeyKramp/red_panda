@@ -23,6 +23,21 @@ Prioritize correctness, clarity, and practical delivery over over-engineering.
 - Keep DTOs, domain models, repositories, services, and controllers separated by responsibility.
 - Return clear API errors for validation failures and rule violations.
 - Preserve database integrity and avoid hidden side effects.
+- When writing tests, include a gerkin-style comment describing the scenario being tested, the expected outcome, and any important edge cases.
+  For example:
+  ```java
+  /**
+   * Given: a student with a completed prerequisite course
+    * When: the student attempts to enroll in a course that requires that prerequisite
+    * Then: the enrollment should succeed
+  */
+  @Test
+  public void testEnrollmentWithPrerequisite() {
+      // test implementation
+  }
+  ```
+
+
 
 ## Frontend Conventions (React / TypeScript)
 
