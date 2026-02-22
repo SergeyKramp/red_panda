@@ -4,11 +4,17 @@ import styles from "./course-details.module.css";
 export interface CourseDetailsProps {
   course: CourseInfo;
   onSignUpCourse?: (course: CourseInfo) => void;
+  isEnrollmentPending?: boolean;
+  enrollmentMessage?: string | null;
+  enrollmentMessageTone?: "error" | "success";
 }
 
 export function CourseDetails({
   course,
   onSignUpCourse,
+  isEnrollmentPending = false,
+  enrollmentMessage = null,
+  enrollmentMessageTone = "error",
 }: CourseDetailsProps) {
   return (
     <div className={styles.courseDetails}>
@@ -43,12 +49,23 @@ export function CourseDetails({
         </div>
       </dl>
 
+      {enrollmentMessage ? (
+        <p
+          aria-live="polite"
+          className={`${styles.enrollmentMessage} ${enrollmentMessageTone === "success" ? styles.enrollmentMessageSuccess : styles.enrollmentMessageError}`}
+          role="status"
+        >
+          {enrollmentMessage}
+        </p>
+      ) : null}
+
       <button
         className={styles.signUpButton}
+        disabled={isEnrollmentPending}
         onClick={() => onSignUpCourse?.(course)}
         type="button"
       >
-        Sign Up for Course
+        {isEnrollmentPending ? "Signing up..." : "Sign Up for Course"}
       </button>
     </div>
   );

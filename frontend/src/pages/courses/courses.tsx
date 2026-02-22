@@ -5,6 +5,11 @@ import {
   useStudentCoursesQuery,
 } from "features/courses";
 import {
+  describeEnrollmentFailure,
+  EnrollmentConflictError,
+  useEnrollInCourseMutation,
+} from "features/enrollment";
+import {
   CourseDetails,
   CourseFilter,
   CourseFilters,
@@ -17,6 +22,8 @@ import styles from "./courses.module.css";
 export function Courses() {
   const [activeFilter, setActiveFilter] = useState<CourseFilter>("all");
   const [selectedCourse, setSelectedCourse] = useState<CourseInfo | null>(null);
+  const [enrollmentMessage, setEnrollmentMessage] = useState<string | null>(null);
+  const [enrollmentMessageTone, setEnrollmentMessageTone] = useState<"error" | "success">("error");
   const {
     data: queriedCourses,
     isPending: isPendingCourses,
@@ -62,9 +69,38 @@ export function Courses() {
       ? isErrorStudentCourses
       : isErrorCourses;
 
-  const handleSignUpCourse = (course: CourseInfo) => {
-    // Placeholder for future enrollment API integration.
-    void course;
+  const enrollInCourseMutation = useEnrollInCourseMutation();
+
+  const openCourseDetails = (course: CourseInfo) => {
+    setEnrollmentMessage(null);
+    enrollInCourseMutation.reset();
+    setSelectedCourse(course);
+  };
+
+  const closeCourseDetails = () => {
+    setEnrollmentMessage(null);
+    enrollInCourseMutation.reset();
+    setSelectedCourse(null);
+  };
+
+  const handleSignUpCourse = async (course: CourseInfo) => {
+    setEnrollmentMessage(null);
+
+    try {
+      await enrollInCourseMutation.mutateAsync(course.id);
+      setEnrollmentMessageTone("success");
+      setEnrollmentMessage("Enrollment successful. Your available courses are being refreshed.");
+    } catch (enrollmentError) {
+      setEnrollmentMessageTone("error");
+
+      if (enrollmentError instanceof EnrollmentConflictError) {
+        const fallbackMessage = describeEnrollmentFailure(enrollmentError.code);
+        setEnrollmentMessage(enrollmentError.message || fallbackMessage);
+        return;
+      }
+
+      setEnrollmentMessage("Enrollment failed. Please try again.");
+    }
   };
 
   return (
@@ -90,20 +126,23 @@ export function Courses() {
       {!isPending && !isError ? (
         <CourseGrid
           courses={activeCourses}
-          onViewCourse={(course) => setSelectedCourse(course)}
+          onViewCourse={openCourseDetails}
         />
       ) : null}
 
       <Drawer
         closeLabel="Close course details"
         isOpen={selectedCourse !== null}
-        onClose={() => setSelectedCourse(null)}
+        onClose={closeCourseDetails}
         subtitle={selectedCourse ? selectedCourse.code : undefined}
         title={selectedCourse ? selectedCourse.name : "Course details"}
       >
         {selectedCourse ? (
           <CourseDetails
             course={selectedCourse}
+            enrollmentMessage={enrollmentMessage}
+            enrollmentMessageTone={enrollmentMessageTone}
+            isEnrollmentPending={enrollInCourseMutation.isPending}
             onSignUpCourse={handleSignUpCourse}
           />
         ) : null}
