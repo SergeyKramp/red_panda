@@ -22,10 +22,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import com.maplewood.config.SecurityConfig;
+import com.maplewood.domain.AppUser;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.CourseType;
 import com.maplewood.domain.SemesterOrder;
 import com.maplewood.domain.Specialization;
+import com.maplewood.domain.Student;
+import com.maplewood.repositories.AppUserRepository;
 import com.maplewood.services.CourseService;
 
 @WebMvcTest(CourseController.class)
@@ -37,6 +40,8 @@ class CourseControllerTest {
 
     @MockBean
     private CourseService courseService;
+    @MockBean
+    private AppUserRepository appUserRepository;
     @MockBean
     private JdbcTemplate jdbcTemplate;
 
@@ -69,7 +74,7 @@ class CourseControllerTest {
      */
     @Test
     void givenNoAuthenticationWhenGettingStudentCoursesThenUnauthorized() throws Exception {
-        mockMvc.perform(get("/api/courses/s/7").param("id", "7").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/courses/student").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -184,10 +189,18 @@ class CourseControllerTest {
         var writing = createCourse(5, "ENG101", "Writing I", "Essay fundamentals", 3.0, 3, science,
                 null, CourseType.CORE, 9, 12, SemesterOrder.FALL);
 
+        var student = new Student();
+        student.setId(7);
+
+        var user = new AppUser();
+        user.setUsername("test-user");
+        user.setStudent(student);
+
+        when(appUserRepository.findByUsername("test-user")).thenReturn(java.util.Optional.of(user));
         when(courseService.findCoursesForStudent(eq(7), any()))
                 .thenReturn(new PageImpl<>(List.of(writing), PageRequest.of(0, 100), 1));
 
-        mockMvc.perform(get("/api/courses/s/7").param("id", "7").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/courses/student").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(5))
