@@ -5,11 +5,13 @@ const config: StorybookConfig = {
     "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
   ],
   "addons": [
-    "@storybook/preset-create-react-app"
+    "@storybook/preset-create-react-app",
+    "@storybook/addon-a11y",
+    "@storybook/addon-vitest"
   ],
   "framework": "@storybook/react-webpack5",
   "staticDirs": [
     "../public"
-  ]
+  ],
 };
 export default config;

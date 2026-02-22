@@ -1,6 +1,9 @@
 import type { Preview } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Story } from 'storybook/internal/csf';
+import { initialize, mswLoader } from 'msw-storybook-addon'
+
+// Initialize MSW
+initialize()
 
 const queryClient = new QueryClient();
 
@@ -20,6 +23,8 @@ const preview: Preview = {
             </QueryClientProvider>
     ),
   ],
+  // Provide the MSW addon loader globally
+  loaders: [mswLoader],
 };
 
 export default preview;
