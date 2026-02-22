@@ -1,6 +1,7 @@
 package com.maplewood.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -59,6 +60,56 @@ class CourseRepositoryTest {
         var pageable = PageRequest.of(0, 10, Sort.by("code").ascending());
         var fallCourses = courseRepository.findAllBySemesterOrder(SemesterOrder.FALL, pageable);
         assertThat(fallCourses.getContent()).hasSize(1);
+    }
+
+    /**
+     * Given: courses with specialization and prerequisite relations
+     *
+     * When: findAllWithSpecializationAndPrerequisite is called
+     *
+     * Then: specialization and prerequisite are eagerly loaded on returned courses
+     */
+    @Test
+    void findAllWithSpecializationAndPrerequisiteLoadsAssociations() {
+        var specialization = new Specialization();
+        specialization.setName("Science");
+        specialization = entityManager.persistFlushFind(specialization);
+
+        var prerequisiteCourse = new Course();
+        prerequisiteCourse.setCode("BIO100");
+        prerequisiteCourse.setName("Biology Basics");
+        prerequisiteCourse.setCredits(3.0);
+        prerequisiteCourse.setHoursPerWeek(3);
+        prerequisiteCourse.setSemesterOrder(SemesterOrder.FALL);
+        prerequisiteCourse.setCourseType(CourseType.CORE);
+        prerequisiteCourse.setSpecialization(specialization);
+        prerequisiteCourse = courseRepository.save(prerequisiteCourse);
+
+        var advancedCourse = new Course();
+        advancedCourse.setCode("BIO200");
+        advancedCourse.setName("Advanced Biology");
+        advancedCourse.setCredits(3.0);
+        advancedCourse.setHoursPerWeek(3);
+        advancedCourse.setSemesterOrder(SemesterOrder.SPRING);
+        advancedCourse.setCourseType(CourseType.CORE);
+        advancedCourse.setSpecialization(specialization);
+        advancedCourse.setPrerequisite(prerequisiteCourse);
+        courseRepository.save(advancedCourse);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var pageable = PageRequest.of(0, 10, Sort.by("code").ascending());
+        var courses = courseRepository.findAllWithSpecializationAndPrerequisite(pageable);
+        var loadedAdvancedCourse = courses.getContent().stream()
+                .filter(course -> course.getCode().equals("BIO200"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getSpecialization())).isTrue();
+        assertThat(Hibernate.isInitialized(loadedAdvancedCourse.getPrerequisite())).isTrue();
+        assertThat(loadedAdvancedCourse.getSpecialization().getName()).isEqualTo("Science");
+        assertThat(loadedAdvancedCourse.getPrerequisite().getCode()).isEqualTo("BIO100");
     }
 
     /**
