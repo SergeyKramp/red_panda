@@ -5,11 +5,18 @@ import { CourseGrid } from "./course-grid";
 
 function createCourses(count: number): CourseCardInfo[] {
   return Array.from({ length: count }, (_, index) => ({
+    id: index + 1,
     code: `CRS-${index + 101}`,
     name: `Course ${index + 1}`,
+    description: `Description for course ${index + 1}`,
     credits: (index % 2) + 1,
+    hoursPerWeek: 4,
     specialization:
       index % 3 === 0 ? "Science" : index % 3 === 1 ? "Math" : "Humanities",
+    prerequisite: null,
+    courseType: index % 2 === 0 ? "REGULAR" : "ELECTIVE",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
     availableForYou: index % 2 === 0,
     availableThisSemester: index % 3 !== 0,
   }));

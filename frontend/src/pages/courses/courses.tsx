@@ -1,4 +1,5 @@
 import { CourseCardInfo } from "features/api";
+import { useCoursesQuery } from "features/courses";
 import {
   CourseFilter,
   CourseFilters,
@@ -7,87 +8,29 @@ import {
 import { useMemo, useState } from "react";
 import styles from "./courses.module.css";
 
-const COURSE_CATALOG: CourseCardInfo[] = [
-  {
-    code: "BIO-101",
-    name: "Introduction to Biology",
-    credits: 1,
-    specialization: "Science",
-    availableThisSemester: true,
-    availableForYou: true,
-  },
-  {
-    code: "CHEM-201",
-    name: "Chemistry Foundations",
-    credits: 1,
-    specialization: "Science",
-    availableThisSemester: true,
-    availableForYou: false,
-  },
-  {
-    code: "ALG-102",
-    name: "Algebra II",
-    credits: 1,
-    specialization: "Mathematics",
-    availableThisSemester: false,
-    availableForYou: true,
-  },
-  {
-    code: "LIT-115",
-    name: "World Literature",
-    credits: 1,
-    specialization: "Humanities",
-    availableThisSemester: true,
-    availableForYou: true,
-  },
-  {
-    code: "CS-120",
-    name: "Computer Science Principles",
-    credits: 1,
-    specialization: "Technology",
-    availableThisSemester: false,
-    availableForYou: false,
-  },
-  {
-    code: "ART-130",
-    name: "Studio Art",
-    credits: 0,
-    specialization: "Arts",
-    availableThisSemester: true,
-    availableForYou: true,
-  },
-  {
-    code: "HIST-210",
-    name: "U.S. History",
-    credits: 1,
-    specialization: "Humanities",
-    availableThisSemester: false,
-    availableForYou: true,
-  },
-  {
-    code: "ENV-205",
-    name: "Environmental Systems",
-    credits: 1,
-    specialization: "Science",
-    availableThisSemester: true,
-    availableForYou: false,
-  },
-];
+export interface CoursesProps {
+  courses?: CourseCardInfo[];
+}
 
-export function Courses() {
+export function Courses({ courses: providedCourses }: CoursesProps) {
   const [activeFilter, setActiveFilter] = useState<CourseFilter>("all");
+  const { data: queriedCourses, isPending, isError } = useCoursesQuery({
+    enabled: !providedCourses,
+  });
+
+  const courses = providedCourses ?? queriedCourses ?? [];
 
   const filteredCourses = useMemo(() => {
     if (activeFilter === "this-semester") {
-      return COURSE_CATALOG.filter((course) => course.availableThisSemester);
+      return courses.filter((course) => course.availableThisSemester);
     }
 
     if (activeFilter === "available-for-you") {
-      return COURSE_CATALOG.filter((course) => course.availableForYou);
+      return courses.filter((course) => course.availableForYou);
     }
 
-    return COURSE_CATALOG;
-  }, [activeFilter]);
+    return courses;
+  }, [activeFilter, courses]);
 
   return (
     <section className={styles.pagePanel}>
@@ -101,7 +44,15 @@ export function Courses() {
         onFilterChange={setActiveFilter}
       />
 
-      <CourseGrid courses={filteredCourses} />
+      {!providedCourses && isPending ? (
+        <p className={styles.stateText}>Loading courses...</p>
+      ) : null}
+
+      {!providedCourses && isError ? (
+        <p className={styles.stateText}>Failed to load courses.</p>
+      ) : null}
+
+      {!isPending && !isError ? <CourseGrid courses={filteredCourses} /> : null}
     </section>
   );
 }

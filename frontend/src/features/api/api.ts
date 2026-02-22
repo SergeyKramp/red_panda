@@ -6,15 +6,27 @@ import z from "zod";
 export const API_BASE_URL =
   process.env.REACT_BASE_URL ?? "http://localhost:8080";
 
-export const CourseCardInfoZod = z.object({
+// Matches backend CourseDTO returned by /api/courses/.
+export const CourseDtoZod = z.object({
+  id: z.number().int(),
   code: z.string().min(1),
   name: z.string().min(1),
-  credits: z.number().int().nonnegative(),
+  description: z.string(),
+  credits: z.number().nonnegative(),
+  hoursPerWeek: z.number().int().nonnegative(),
   specialization: z.string().min(1),
-  availableForYou: z.boolean(),
-  availableThisSemester: z.boolean(),
+  prerequisite: z.string().nullable(),
+  courseType: z.string().min(1),
+  gradeLevelMin: z.number().int(),
+  gradeLevelMax: z.number().int(),
 });
 
-export const CourseCardInfoListZod = z.array(CourseCardInfoZod);
+export const CourseDtoListZod = z.array(CourseDtoZod);
 
-export type CourseCardInfo = z.infer<typeof CourseCardInfoZod>;
+export type CourseDto = z.infer<typeof CourseDtoZod>;
+
+export type CourseCardInfo = CourseDto & {
+  // Frontend-only fields. Backend will provide these later.
+  availableForYou: boolean;
+  availableThisSemester: boolean;
+};

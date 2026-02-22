@@ -1,7 +1,131 @@
 import type { Meta, StoryObj } from "@storybook/react-webpack5";
+import { CourseCardInfo } from "features/api";
 import { expect, userEvent, within } from "storybook/test";
 import "../../global.module.css";
 import { Courses } from "./courses";
+
+const COURSE_CATALOG: CourseCardInfo[] = [
+  {
+    id: 1,
+    code: "BIO-101",
+    name: "Introduction to Biology",
+    description: "Foundational biology topics.",
+    credits: 1,
+    hoursPerWeek: 5,
+    specialization: "Science",
+    prerequisite: null,
+    courseType: "REGULAR",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
+    availableThisSemester: true,
+    availableForYou: true,
+  },
+  {
+    id: 2,
+    code: "CHEM-201",
+    name: "Chemistry Foundations",
+    description: "Core chemistry principles.",
+    credits: 1,
+    hoursPerWeek: 5,
+    specialization: "Science",
+    prerequisite: null,
+    courseType: "REGULAR",
+    gradeLevelMin: 10,
+    gradeLevelMax: 12,
+    availableThisSemester: true,
+    availableForYou: false,
+  },
+  {
+    id: 3,
+    code: "ALG-102",
+    name: "Algebra II",
+    description: "Intermediate algebra curriculum.",
+    credits: 1,
+    hoursPerWeek: 5,
+    specialization: "Mathematics",
+    prerequisite: "Algebra I",
+    courseType: "REGULAR",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
+    availableThisSemester: false,
+    availableForYou: true,
+  },
+  {
+    id: 4,
+    code: "LIT-115",
+    name: "World Literature",
+    description: "Literary works from multiple regions.",
+    credits: 1,
+    hoursPerWeek: 4,
+    specialization: "Humanities",
+    prerequisite: null,
+    courseType: "REGULAR",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
+    availableThisSemester: true,
+    availableForYou: true,
+  },
+  {
+    id: 5,
+    code: "CS-120",
+    name: "Computer Science Principles",
+    description: "Programming and computational thinking.",
+    credits: 1,
+    hoursPerWeek: 5,
+    specialization: "Technology",
+    prerequisite: null,
+    courseType: "REGULAR",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
+    availableThisSemester: false,
+    availableForYou: false,
+  },
+  {
+    id: 6,
+    code: "ART-130",
+    name: "Studio Art",
+    description: "Drawing and mixed media studio work.",
+    credits: 0.5,
+    hoursPerWeek: 3,
+    specialization: "Arts",
+    prerequisite: null,
+    courseType: "ELECTIVE",
+    gradeLevelMin: 9,
+    gradeLevelMax: 12,
+    availableThisSemester: true,
+    availableForYou: true,
+  },
+  {
+    id: 7,
+    code: "HIST-210",
+    name: "U.S. History",
+    description: "Survey of United States history.",
+    credits: 1,
+    hoursPerWeek: 4,
+    specialization: "Humanities",
+    prerequisite: null,
+    courseType: "REGULAR",
+    gradeLevelMin: 10,
+    gradeLevelMax: 12,
+    availableThisSemester: false,
+    availableForYou: true,
+  },
+  {
+    id: 8,
+    code: "ENV-205",
+    name: "Environmental Systems",
+    description: "Study of ecosystems and sustainability.",
+    credits: 1,
+    hoursPerWeek: 5,
+    specialization: "Science",
+    prerequisite: "Introduction to Biology",
+    courseType: "ELECTIVE",
+    gradeLevelMin: 11,
+    gradeLevelMax: 12,
+    availableThisSemester: true,
+    availableForYou: false,
+  },
+];
 
 const meta: Meta<typeof Courses> = {
   title: "Pages/Courses",
@@ -19,9 +143,16 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: {
+    courses: COURSE_CATALOG,
+  },
+};
 
 export const FiltersChangeVisibleCards: Story = {
+  args: {
+    courses: COURSE_CATALOG,
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
