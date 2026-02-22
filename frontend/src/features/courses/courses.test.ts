@@ -2,13 +2,14 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, test } from "vitest";
 import { API_BASE_URL } from "features/api";
 import { mockServer } from "test-utils/mock-server";
-import { getCourses, getSemesterCourses } from "./courses";
+import { getCourses, getSemesterCourses, getStudentCourses } from "./courses";
 
 const COURSES_ENDPOINT = `${API_BASE_URL}/api/courses/`;
 const SEMESTER_COURSES_ENDPOINT = `${API_BASE_URL}/api/courses/semester`;
+const STUDENT_COURSES_ENDPOINT = `${API_BASE_URL}/api/courses/student`;
 
 describe("getCourses", () => {
-  test("returns mapped courses when API payload matches backend DTO", async () => {
+  test("returns courses when API payload matches backend DTO", async () => {
     mockServer.use(
       http.get(COURSES_ENDPOINT, () =>
         HttpResponse.json([
@@ -44,7 +45,6 @@ describe("getCourses", () => {
         courseType: "REGULAR",
         gradeLevelMin: 9,
         gradeLevelMax: 12,
-        availableForYou: false,
       },
     ]);
   });
@@ -73,7 +73,7 @@ describe("getCourses", () => {
 });
 
 describe("getSemesterCourses", () => {
-  test("returns mapped courses when semester endpoint payload matches backend DTO", async () => {
+  test("returns courses when semester endpoint payload matches backend DTO", async () => {
     mockServer.use(
       http.get(SEMESTER_COURSES_ENDPOINT, () =>
         HttpResponse.json([
@@ -109,8 +109,59 @@ describe("getSemesterCourses", () => {
         courseType: "REGULAR",
         gradeLevelMin: 10,
         gradeLevelMax: 12,
-        availableForYou: false,
       },
     ]);
+  });
+});
+
+describe("getStudentCourses", () => {
+  test("returns courses when student endpoint payload matches backend DTO", async () => {
+    mockServer.use(
+      http.get(STUDENT_COURSES_ENDPOINT, () =>
+        HttpResponse.json([
+          {
+            id: 3,
+            code: "ENG-101",
+            name: "Writing I",
+            description: "Essay fundamentals and analysis.",
+            credits: 1,
+            hoursPerWeek: 4,
+            specialization: "Humanities",
+            prerequisite: null,
+            courseType: "REGULAR",
+            gradeLevelMin: 9,
+            gradeLevelMax: 12,
+          },
+        ]),
+      ),
+    );
+
+    const courses = await getStudentCourses();
+
+    expect(courses).toEqual([
+      {
+        id: 3,
+        code: "ENG-101",
+        name: "Writing I",
+        description: "Essay fundamentals and analysis.",
+        credits: 1,
+        hoursPerWeek: 4,
+        specialization: "Humanities",
+        prerequisite: null,
+        courseType: "REGULAR",
+        gradeLevelMin: 9,
+        gradeLevelMax: 12,
+      },
+    ]);
+  });
+
+  test("throws when student endpoint returns non-ok status", async () => {
+    mockServer.use(
+      http.get(STUDENT_COURSES_ENDPOINT, () => new HttpResponse(null, { status: 401 })),
+    );
+
+    await expect(getStudentCourses()).rejects.toThrow(
+      "Failed to fetch student courses: 401",
+    );
   });
 });

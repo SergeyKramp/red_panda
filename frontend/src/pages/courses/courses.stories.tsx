@@ -17,7 +17,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: true,
   },
   {
     id: 2,
@@ -31,7 +30,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 10,
     gradeLevelMax: 12,
-    availableForYou: false,
   },
   {
     id: 3,
@@ -45,7 +43,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: true,
   },
   {
     id: 4,
@@ -59,7 +56,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: true,
   },
   {
     id: 5,
@@ -73,7 +69,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: false,
   },
   {
     id: 6,
@@ -87,7 +82,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "ELECTIVE",
     gradeLevelMin: 9,
     gradeLevelMax: 12,
-    availableForYou: true,
   },
   {
     id: 7,
@@ -101,7 +95,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "REGULAR",
     gradeLevelMin: 10,
     gradeLevelMax: 12,
-    availableForYou: true,
   },
   {
     id: 8,
@@ -115,7 +108,6 @@ const COURSE_CATALOG: CourseInfo[] = [
     courseType: "ELECTIVE",
     gradeLevelMin: 11,
     gradeLevelMax: 12,
-    availableForYou: false,
   },
 ];
 
@@ -125,6 +117,14 @@ const SEMESTER_COURSE_CATALOG: CourseInfo[] = [
   COURSE_CATALOG[3],
   COURSE_CATALOG[5],
   COURSE_CATALOG[7],
+];
+
+const STUDENT_COURSE_CATALOG: CourseInfo[] = [
+  COURSE_CATALOG[0],
+  COURSE_CATALOG[2],
+  COURSE_CATALOG[3],
+  COURSE_CATALOG[5],
+  COURSE_CATALOG[6],
 ];
 
 const meta: Meta<typeof Courses> = {
@@ -147,6 +147,7 @@ export const Default: Story = {
   args: {
     courses: COURSE_CATALOG,
     semesterCourses: SEMESTER_COURSE_CATALOG,
+    studentCourses: STUDENT_COURSE_CATALOG,
   },
 };
 
@@ -154,6 +155,7 @@ export const FiltersChangeVisibleCards: Story = {
   args: {
     courses: COURSE_CATALOG,
     semesterCourses: SEMESTER_COURSE_CATALOG,
+    studentCourses: STUDENT_COURSE_CATALOG,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
