@@ -33,6 +33,16 @@ public class StudentService {
     }
 
 
+    public StudentDashboardInformation getStudentDashboardInformation(@NonNull Integer studentId) {
+        var student = findStudentById(studentId);
+        var earnedCredits = studentCourseHistoryRepository.findEarnedCreditsByStudentId(studentId);
+        return new StudentDashboardInformation(student,
+                earnedCredits == null ? 0.0 : earnedCredits);
+    }
+
+    public record StudentDashboardInformation(Student student, Double earnedCredits) {
+    }
+
     /**
      * Determine if a student can take a course based on the following business rules:
      * 
@@ -40,6 +50,7 @@ public class StudentService {
      * <li>The student must meet the grade level requirements of the course.</li>
      * <li>The student must not have already passed the course.</li>
      * <li>The student must have passed the prerequisite course, if any.</li>
+     * <li>The student must not already be enrolled in the course.</li>
      * <li>The student must not already be enrolled in the maximum number of courses for the active
      * semester.</li>
      * </ol>

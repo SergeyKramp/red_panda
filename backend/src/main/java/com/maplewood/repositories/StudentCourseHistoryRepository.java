@@ -32,6 +32,18 @@ public interface StudentCourseHistoryRepository
     long countActiveSemesterCoursesByStudentId(@NonNull Integer studentId);
 
     @Query("""
+            SELECT COALESCE(SUM(c.credits), 0)
+            FROM Course c
+            WHERE c.id IN (
+                SELECT DISTINCT sch.course.id
+                FROM StudentCourseHistory sch
+                WHERE sch.student.id = ?1
+                        AND sch.status = com.maplewood.domain.CourseHistoryStatus.PASSED
+            )
+            """)
+    Double findEarnedCreditsByStudentId(@NonNull Integer studentId);
+
+    @Query("""
             SELECT c as course,
             CASE
                 WHEN SUM(

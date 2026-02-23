@@ -8,6 +8,7 @@ import com.maplewood.repositories.AppUserRepository;
 import org.springframework.security.core.Authentication;
 import com.maplewood.services.StudentCourseHistoryService;
 import com.maplewood.services.StudentEnrollmentService;
+import com.maplewood.services.StudentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,23 +21,43 @@ public class StudentDashboardController {
 
         private final StudentCourseHistoryService studentCourseHistoryService;
         private final StudentEnrollmentService studentEnrollmentService;
+        private final StudentService studentService;
         private final AppUserRepository appUserRepository;
 
         public StudentDashboardController(StudentCourseHistoryService studentCourseHistoryService,
                         StudentEnrollmentService studentEnrollmentService,
+                        StudentService studentService,
                         AppUserRepository appUserRepository) {
                 this.studentCourseHistoryService = studentCourseHistoryService;
                 this.studentEnrollmentService = studentEnrollmentService;
+                this.studentService = studentService;
                 this.appUserRepository = appUserRepository;
         }
+
+        @GetMapping("/info")
+        public ResponseEntity<StudentInformationResponse> getMetrics(Authentication authentication) {
+                var studentId = getAuthenticatedStudentId(authentication);
+                var studentDashboardInformation = studentService
+                                .getStudentDashboardInformation(studentId);
+                var student = studentDashboardInformation.student();
+
+                return ResponseEntity.ok(new StudentInformationResponse(
+                                student.getFirstName(),
+                                student.getLastName(),
+                                student.getEmail(),
+                                student.getGradeLevel(),
+                                student.getStatus() == null ? null : student.getStatus().name(),
+                                studentDashboardInformation.earnedCredits()));
+        }
+
 
         @GetMapping("/course-history")
         public ResponseEntity<CourseHistoryResponse> getCourseHistory(
                         Authentication authentication) {
                 var studentId = getAuthenticatedStudentId(authentication);
 
-                var courseHistory = studentCourseHistoryService
-                                .getStudentCourseHistory(studentId).stream()
+                var courseHistory = studentCourseHistoryService.getStudentCourseHistory(studentId)
+                                .stream()
                                 .map(ch -> new CourseHistoryDTO(ch.getCourse().getName(),
                                                 String.valueOf(ch.getCourse().getCredits()),
                                                 ch.getStatus().name()))
@@ -74,6 +95,10 @@ public class StudentDashboardController {
                 }
 
                 return student.getId();
+        }
+
+        record StudentInformationResponse(String firstName, String lastName, String email,
+                        Integer gradeLevel, String status, Double earnedCredits) {
         }
 
         record CourseHistoryResponse(List<CourseHistoryDTO> courseHistory) {
