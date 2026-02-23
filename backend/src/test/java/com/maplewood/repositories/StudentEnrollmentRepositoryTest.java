@@ -2,6 +2,7 @@ package com.maplewood.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Comparator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -13,6 +14,7 @@ import com.maplewood.domain.Semester;
 import com.maplewood.domain.SemesterOrder;
 import com.maplewood.domain.Specialization;
 import com.maplewood.domain.Student;
+import com.maplewood.domain.StudentEnrollment;
 import com.maplewood.domain.StudentEnrollmentStatus;
 
 @DataJpaTest
@@ -82,6 +84,70 @@ class StudentEnrollmentRepositoryTest {
         assertThat(studentEnrollmentRepository.findAll()).isEmpty();
     }
 
+    /**
+     * Given: a target student with enrollments across active and inactive semesters, mixed
+     * statuses, and another student's active enrollment
+     *
+     * When: findEnrolledCoursesByStudentIdInActiveSemester is called for the target student
+     *
+     * Then: only the target student's enrolled courses from active semesters should be returned
+     */
+    @Test
+    void findEnrolledCoursesByStudentIdInActiveSemesterReturnsOnlyActiveEnrolledCoursesForStudent() {
+        var specialization = persistSpecialization("History");
+        var targetStudent = persistStudent("enroll-target@student.test");
+        var otherStudent = persistStudent("enroll-other@student.test");
+
+        var worldHistory = persistCourse("HIS101", "World History", specialization);
+        var civics = persistCourse("HIS102", "Civics", specialization);
+        var geography = persistCourse("HIS103", "Geography", specialization);
+
+        var activeSemester = persistSemester("Fall", 2028, SemesterOrder.FALL, true);
+        var inactiveSemester = persistSemester("Spring", 2028, SemesterOrder.SPRING, false);
+
+        persistEnrollment(targetStudent, worldHistory, activeSemester, StudentEnrollmentStatus.ENROLLED);
+        persistEnrollment(targetStudent, civics, activeSemester, StudentEnrollmentStatus.DROPPED);
+        persistEnrollment(targetStudent, geography, inactiveSemester, StudentEnrollmentStatus.ENROLLED);
+        persistEnrollment(otherStudent, civics, activeSemester, StudentEnrollmentStatus.ENROLLED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var enrolledCourses = studentEnrollmentRepository
+                .findEnrolledCoursesByStudentIdInActiveSemester(targetStudent.getId());
+
+        assertThat(enrolledCourses).hasSize(1);
+        assertThat(enrolledCourses.stream()
+                .map(Course::getId)
+                .sorted(Comparator.naturalOrder())
+                .toList()).containsExactly(worldHistory.getId());
+    }
+
+    /**
+     * Given: a student with no enrolled records in any active semester
+     *
+     * When: findEnrolledCoursesByStudentIdInActiveSemester is called
+     *
+     * Then: an empty list should be returned
+     */
+    @Test
+    void findEnrolledCoursesByStudentIdInActiveSemesterReturnsEmptyWhenNoMatchingRecordsExist() {
+        var specialization = persistSpecialization("Science");
+        var student = persistStudent("enroll-empty@student.test");
+        var biology = persistCourse("BIO101", "Biology I", specialization);
+        var inactiveSemester = persistSemester("Spring", 2029, SemesterOrder.SPRING, false);
+
+        persistEnrollment(student, biology, inactiveSemester, StudentEnrollmentStatus.ENROLLED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var enrolledCourses = studentEnrollmentRepository
+                .findEnrolledCoursesByStudentIdInActiveSemester(student.getId());
+
+        assertThat(enrolledCourses).isEmpty();
+    }
+
     private Specialization persistSpecialization(String name) {
         var specialization = new Specialization();
         specialization.setName(name);
@@ -120,5 +186,15 @@ class StudentEnrollmentRepositoryTest {
         semester.setOrderInYear(order);
         semester.setActive(active);
         return entityManager.persistFlushFind(semester);
+    }
+
+    private void persistEnrollment(Student student, Course course, Semester semester,
+            StudentEnrollmentStatus status) {
+        var enrollment = new StudentEnrollment();
+        enrollment.setStudent(student);
+        enrollment.setCourse(course);
+        enrollment.setSemester(semester);
+        enrollment.setStatus(status);
+        entityManager.persist(enrollment);
     }
 }

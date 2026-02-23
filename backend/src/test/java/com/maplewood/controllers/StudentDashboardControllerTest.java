@@ -27,6 +27,7 @@ import com.maplewood.domain.Student;
 import com.maplewood.repositories.AppUserRepository;
 import com.maplewood.repositories.StudentCourseHistoryRepository.CourseWithStatusProjection;
 import com.maplewood.services.StudentCourseHistoryService;
+import com.maplewood.services.StudentEnrollmentService;
 
 @WebMvcTest(StudentDashboardController.class)
 @AutoConfigureMockMvc
@@ -38,6 +39,8 @@ class StudentDashboardControllerTest {
 
     @MockBean
     private StudentCourseHistoryService studentCourseHistoryService;
+    @MockBean
+    private StudentEnrollmentService studentEnrollmentService;
 
     @MockBean
     private AppUserRepository appUserRepository;
@@ -126,6 +129,58 @@ class StudentDashboardControllerTest {
                 .andExpect(jsonPath("$.courseHistory[0].status").value("PASSED"));
 
         verify(studentCourseHistoryService).getStudentCourseHistory(7);
+    }
+
+    /**
+     * Given: no authenticated user
+     * When: requesting the student dashboard enrolled courses endpoint
+     * Then: the response should be unauthorized (401)
+     */
+    @Test
+    void givenNoAuthenticationWhenGettingEnrolledCoursesThenUnauthorized() throws Exception {
+        mockMvc.perform(
+                get("/api/dashboard/student/enrolled-courses").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Given: an authenticated principal mapped to a student with active-semester enrollments
+     * When: requesting the student dashboard enrolled courses endpoint
+     * Then: the response should contain enrolledCourses with correctly mapped course fields
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenAuthenticatedStudentWhenGettingEnrolledCoursesThenReturnsMappedResponse()
+            throws Exception {
+        var student = new Student();
+        student.setId(7);
+
+        var user = new AppUser();
+        user.setUsername("test-user");
+        user.setStudent(student);
+
+        var english = new Course();
+        english.setName("English Composition");
+        english.setCredits(3.0);
+
+        var biology = new Course();
+        biology.setName("Biology I");
+        biology.setCredits(2.0);
+
+        when(appUserRepository.findByUsername("test-user")).thenReturn(Optional.of(user));
+        when(studentEnrollmentService.getActiveSemesterEnrollments(7))
+                .thenReturn(List.of(english, biology));
+
+        mockMvc.perform(
+                get("/api/dashboard/student/enrolled-courses").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enrolledCourses.length()").value(2))
+                .andExpect(jsonPath("$.enrolledCourses[0].courseName").value("English Composition"))
+                .andExpect(jsonPath("$.enrolledCourses[0].credits").value("3.0"))
+                .andExpect(jsonPath("$.enrolledCourses[1].courseName").value("Biology I"))
+                .andExpect(jsonPath("$.enrolledCourses[1].credits").value("2.0"));
+
+        verify(studentEnrollmentService).getActiveSemesterEnrollments(7);
     }
 
     private CourseWithStatusProjection courseProjection(Course course, CourseHistoryStatus status) {
