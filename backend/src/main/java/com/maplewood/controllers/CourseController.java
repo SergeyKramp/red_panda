@@ -52,7 +52,7 @@ public class CourseController {
 
         @GetMapping("/semester")
         public ResponseEntity<List<CourseDTO>> getCoursesBySemester() {
-                var courses = courseService.findCoursesBySemesterOrder(this.pageable);
+                var courses = courseService.findCoursesForActiveSemester(this.pageable);
 
                 var courseDTOs = courses.getContent().stream()
                                 .map(course -> new CourseDTO(course.getId(), course.getCode(),
