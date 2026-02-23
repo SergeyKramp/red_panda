@@ -62,9 +62,12 @@ export function Courses() {
       ? isErrorStudentCourses
       : isErrorCourses;
 
-  const handleSignUpCourse = (course: CourseInfo) => {
-    // Placeholder for future enrollment API integration.
-    void course;
+  const openCourseDetails = (course: CourseInfo) => {
+    setSelectedCourse(course);
+  };
+
+  const closeCourseDetails = () => {
+    setSelectedCourse(null);
   };
 
   return (
@@ -90,22 +93,19 @@ export function Courses() {
       {!isPending && !isError ? (
         <CourseGrid
           courses={activeCourses}
-          onViewCourse={(course) => setSelectedCourse(course)}
+          onViewCourse={openCourseDetails}
         />
       ) : null}
 
       <Drawer
         closeLabel="Close course details"
         isOpen={selectedCourse !== null}
-        onClose={() => setSelectedCourse(null)}
+        onClose={closeCourseDetails}
         subtitle={selectedCourse ? selectedCourse.code : undefined}
         title={selectedCourse ? selectedCourse.name : "Course details"}
       >
         {selectedCourse ? (
-          <CourseDetails
-            course={selectedCourse}
-            onSignUpCourse={handleSignUpCourse}
-          />
+          <CourseDetails course={selectedCourse} />
         ) : null}
       </Drawer>
     </section>

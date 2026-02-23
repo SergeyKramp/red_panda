@@ -23,6 +23,22 @@ export const CourseDtoZod = z.object({
 
 export const CourseDtoListZod = z.array(CourseDtoZod);
 
-export type CourseDto = z.infer<typeof CourseDtoZod>;
+export const EnrollmentFailureCodeZod = z.enum([
+  "INVALID_INPUT",
+  "GRADE_LEVEL_MISMATCH",
+  "COURSE_ALREADY_PASSED",
+  "COURSE_ALREADY_ENROLLED",
+  "PREREQUISITE_NOT_MET",
+  "MAX_COURSES_REACHED",
+  "UNKNOWN",
+]);
 
-export type CourseInfo = CourseDto;
+export const EnrollmentFailureResponseZod = z.object({
+  messageCode: EnrollmentFailureCodeZod,
+  courseId: z.number().int(),
+});
+
+export type CourseInfo = z.infer<typeof CourseDtoZod>;
+
+export type EnrollmentFailureCode = z.infer<typeof EnrollmentFailureCodeZod>;
+export type EnrollmentFailureResponse = z.infer<typeof EnrollmentFailureResponseZod>;

@@ -52,7 +52,6 @@
 }
 
 .signUpButton {
-  margin-top: auto;
   border: none;
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
@@ -68,6 +67,14 @@
     filter 140ms ease;
 }
 
+.signUpButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
 .signUpButton:hover {
   transform: translateY(-0.0625rem);
   box-shadow: 0 0.5rem 0.875rem -0.5rem var(--color-active-shadow);
@@ -77,6 +84,34 @@
 .signUpButton:focus-visible {
   outline: 0.125rem solid var(--color-accent);
   outline-offset: 0.125rem;
+}
+
+.enrollmentMessage {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.enrollmentFooter {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.enrollmentMessageError {
+  color: var(--color-primary);
+  border: 0.0625rem solid rgba(160, 82, 45, 0.35);
+  background: rgba(176, 48, 48, 0.16);
+}
+
+.enrollmentMessageSuccess {
+  color: var(--color-accent);
+  border: 0.0625rem solid rgba(85, 107, 47, 0.38);
+  background: rgba(85, 107, 47, 0.2);
 }
 
 @media (max-width: 36rem) {
