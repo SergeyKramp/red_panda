@@ -6,3 +6,4 @@ export * from "./course-filters";
 export * from "./drawer";
 export * from "./course-details";
 export * from "./course-history-table";
+export * from "./enrollments-table";
