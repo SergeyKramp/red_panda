@@ -19,3 +19,22 @@
   padding: 2rem;
   overflow-y: scroll;
 }
+
+@media (max-width: 48rem) {
+  .dashboardShell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100dvh;
+  }
+
+  .navbarContainer {
+    min-height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+}
