@@ -26,8 +26,8 @@ class StudentCourseHistoryRepositoryTest {
     private TestEntityManager entityManager;
 
     /**
-     * Given: a student with passed and failed history entries, plus another student's passed entry and
-     * duplicate passes for the same course across semesters
+     * Given: a student with passed and failed history entries, plus another student's passed entry
+     * and duplicate passes for the same course across semesters
      *
      * When: findPassedCourseIdsByStudentId is called for that student
      *
@@ -54,8 +54,8 @@ class StudentCourseHistoryRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        var passedCourseIds =
-                studentCourseHistoryRepository.findPassedCourseIdsByStudentId(targetStudent.getId());
+        var passedCourseIds = studentCourseHistoryRepository
+                .findPassedCourseIdsByStudentId(targetStudent.getId());
 
         assertThat(passedCourseIds).isEqualTo(Set.of(biologyCourse.getId()));
     }
@@ -181,7 +181,8 @@ class StudentCourseHistoryRepositoryTest {
         return persistSemester(name, year, order, false);
     }
 
-    private Semester persistSemester(String name, Integer year, SemesterOrder order, boolean active) {
+    private Semester persistSemester(String name, Integer year, SemesterOrder order,
+            boolean active) {
         var semester = new Semester();
         semester.setName(name);
         semester.setYear(year);
@@ -190,10 +191,7 @@ class StudentCourseHistoryRepositoryTest {
         return entityManager.persistFlushFind(semester);
     }
 
-    private void persistHistory(
-            Student student,
-            Course course,
-            Semester semester,
+    private void persistHistory(Student student, Course course, Semester semester,
             CourseHistoryStatus status) {
         var history = new StudentCourseHistory();
         history.setStudent(student);
