@@ -24,10 +24,12 @@ import com.maplewood.domain.AppUser;
 import com.maplewood.domain.Course;
 import com.maplewood.domain.CourseHistoryStatus;
 import com.maplewood.domain.Student;
+import com.maplewood.domain.StudentStatus;
 import com.maplewood.repositories.AppUserRepository;
 import com.maplewood.repositories.StudentCourseHistoryRepository.CourseWithStatusProjection;
 import com.maplewood.services.StudentCourseHistoryService;
 import com.maplewood.services.StudentEnrollmentService;
+import com.maplewood.services.StudentService;
 
 @WebMvcTest(StudentDashboardController.class)
 @AutoConfigureMockMvc
@@ -41,6 +43,8 @@ class StudentDashboardControllerTest {
     private StudentCourseHistoryService studentCourseHistoryService;
     @MockBean
     private StudentEnrollmentService studentEnrollmentService;
+    @MockBean
+    private StudentService studentService;
 
     @MockBean
     private AppUserRepository appUserRepository;
@@ -56,6 +60,17 @@ class StudentDashboardControllerTest {
     void givenNoAuthenticationWhenGettingCourseHistoryThenUnauthorized() throws Exception {
         mockMvc.perform(
                 get("/api/dashboard/student/course-history").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Given: no authenticated user
+     * When: requesting the student dashboard info endpoint
+     * Then: the response should be unauthorized (401)
+     */
+    @Test
+    void givenNoAuthenticationWhenGettingInfoThenUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/dashboard/student/info").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -181,6 +196,43 @@ class StudentDashboardControllerTest {
                 .andExpect(jsonPath("$.enrolledCourses[1].credits").value("2.0"));
 
         verify(studentEnrollmentService).getActiveSemesterEnrollments(7);
+    }
+
+    /**
+     * Given: an authenticated principal mapped to a student with dashboard information
+     * When: requesting the student dashboard info endpoint
+     * Then: the response should include student identity, grade level, status, and earned credits
+     */
+    @Test
+    @WithMockUser(username = "test-user")
+    void givenAuthenticatedStudentWhenGettingInfoThenReturnsMappedResponse()
+            throws Exception {
+        var student = new Student();
+        student.setId(7);
+        student.setFirstName("Emma");
+        student.setLastName("Wilson");
+        student.setEmail("emma.wilson@maplewood.edu");
+        student.setGradeLevel(10);
+        student.setStatus(StudentStatus.ACTIVE);
+
+        var user = new AppUser();
+        user.setUsername("test-user");
+        user.setStudent(student);
+
+        when(appUserRepository.findByUsername("test-user")).thenReturn(Optional.of(user));
+        when(studentService.getStudentDashboardInformation(7))
+                .thenReturn(new StudentService.StudentDashboardInformation(student, 18.0));
+
+        mockMvc.perform(get("/api/dashboard/student/info").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Emma"))
+                .andExpect(jsonPath("$.lastName").value("Wilson"))
+                .andExpect(jsonPath("$.email").value("emma.wilson@maplewood.edu"))
+                .andExpect(jsonPath("$.gradeLevel").value(10))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.earnedCredits").value(18.0));
+
+        verify(studentService).getStudentDashboardInformation(7);
     }
 
     private CourseWithStatusProjection courseProjection(Course course, CourseHistoryStatus status) {
