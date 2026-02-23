@@ -1,9 +1,12 @@
 package com.maplewood.repositories;
 
+import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
+import com.maplewood.domain.Course;
 import com.maplewood.domain.StudentEnrollment;
 import com.maplewood.domain.StudentEnrollmentStatus;
 
@@ -22,4 +25,13 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
                         """,
                         nativeQuery = true)
         int addEnrollment(Integer studentId, Integer courseId);
+
+        @Query("""
+                        SELECT se.course
+                        FROM StudentEnrollment se
+                        WHERE se.student.id = ?1
+                                AND se.semester.active = true
+                                AND se.status = com.maplewood.domain.StudentEnrollmentStatus.ENROLLED
+                        """)
+        List<Course> findEnrolledCoursesByStudentIdInActiveSemester(@NonNull Integer studentId);
 }
