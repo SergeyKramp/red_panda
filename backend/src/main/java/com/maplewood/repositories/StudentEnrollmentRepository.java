@@ -34,4 +34,13 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
                                 AND se.status = com.maplewood.domain.StudentEnrollmentStatus.ENROLLED
                         """)
         List<Course> findEnrolledCoursesByStudentIdInActiveSemester(@NonNull Integer studentId);
+
+        @Query("""
+                        SELECT COUNT(se.id)
+                        FROM StudentEnrollment se
+                        WHERE se.student.id = ?1
+                                AND se.semester.active = true
+                                AND se.status = com.maplewood.domain.StudentEnrollmentStatus.ENROLLED
+                        """)
+        long countEnrolledCoursesByStudentIdInActiveSemester(@NonNull Integer studentId);
 }

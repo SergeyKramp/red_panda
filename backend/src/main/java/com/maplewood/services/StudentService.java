@@ -96,7 +96,7 @@ public class StudentService {
         }
 
         // Check if the student is already at the max number of courses in the active semester.
-        if (studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(
+        if (studentEnrollmentRepository.countEnrolledCoursesByStudentIdInActiveSemester(
                 Objects.requireNonNull(student.getId())) >= MAX_COURSES_PER_SEMESTER) {
             return Optional.of(EnrollmentErrorCode.MAX_COURSES_REACHED);
         }

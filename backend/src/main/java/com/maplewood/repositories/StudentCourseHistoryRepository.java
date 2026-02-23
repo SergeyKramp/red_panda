@@ -25,13 +25,6 @@ public interface StudentCourseHistoryRepository
     Set<Integer> findPassedCourseIdsByStudentId(@NonNull Integer studentId);
 
     @Query("""
-            SELECT COUNT(sch.id)
-            FROM StudentCourseHistory sch
-            WHERE sch.student.id = :studentId AND sch.semester.active = true
-            """)
-    long countActiveSemesterCoursesByStudentId(@NonNull Integer studentId);
-
-    @Query("""
             SELECT COALESCE(SUM(c.credits), 0)
             FROM Course c
             WHERE c.id IN (

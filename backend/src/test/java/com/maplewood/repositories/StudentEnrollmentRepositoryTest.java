@@ -148,6 +148,66 @@ class StudentEnrollmentRepositoryTest {
         assertThat(enrolledCourses).isEmpty();
     }
 
+    /**
+     * Given: a target student with enrollments across active/inactive semesters, mixed statuses,
+     * and another student's active enrollment
+     *
+     * When: countEnrolledCoursesByStudentIdInActiveSemester is called for the target student
+     *
+     * Then: only that student's ENROLLED records in active semesters should be counted
+     */
+    @Test
+    void countEnrolledCoursesByStudentIdInActiveSemesterCountsOnlyTargetStudentActiveEnrollments() {
+        var specialization = persistSpecialization("Literature");
+        var targetStudent = persistStudent("count-target@student.test");
+        var otherStudent = persistStudent("count-other@student.test");
+
+        var literature = persistCourse("LIT101", "Literature I", specialization);
+        var writing = persistCourse("LIT102", "Creative Writing", specialization);
+        var poetry = persistCourse("LIT103", "Poetry", specialization);
+
+        var activeSemester = persistSemester("Fall", 2030, SemesterOrder.FALL, true);
+        var inactiveSemester = persistSemester("Spring", 2030, SemesterOrder.SPRING, false);
+
+        persistEnrollment(targetStudent, literature, activeSemester, StudentEnrollmentStatus.ENROLLED);
+        persistEnrollment(targetStudent, writing, activeSemester, StudentEnrollmentStatus.DROPPED);
+        persistEnrollment(targetStudent, poetry, inactiveSemester, StudentEnrollmentStatus.ENROLLED);
+        persistEnrollment(otherStudent, writing, activeSemester, StudentEnrollmentStatus.ENROLLED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var enrollmentCount = studentEnrollmentRepository
+                .countEnrolledCoursesByStudentIdInActiveSemester(targetStudent.getId());
+
+        assertThat(enrollmentCount).isEqualTo(1);
+    }
+
+    /**
+     * Given: a student with no ENROLLED records in active semesters
+     *
+     * When: countEnrolledCoursesByStudentIdInActiveSemester is called
+     *
+     * Then: zero should be returned
+     */
+    @Test
+    void countEnrolledCoursesByStudentIdInActiveSemesterReturnsZeroWhenNoActiveEnrollmentsExist() {
+        var specialization = persistSpecialization("Art");
+        var student = persistStudent("count-empty@student.test");
+        var painting = persistCourse("ART101", "Painting I", specialization);
+        var activeSemester = persistSemester("Fall", 2031, SemesterOrder.FALL, true);
+
+        persistEnrollment(student, painting, activeSemester, StudentEnrollmentStatus.DROPPED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var enrollmentCount = studentEnrollmentRepository
+                .countEnrolledCoursesByStudentIdInActiveSemester(student.getId());
+
+        assertThat(enrollmentCount).isZero();
+    }
+
     private Specialization persistSpecialization(String name) {
         var specialization = new Specialization();
         specialization.setName(name);
