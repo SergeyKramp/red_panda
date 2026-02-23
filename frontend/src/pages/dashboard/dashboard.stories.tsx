@@ -6,6 +6,8 @@ import { Dashboard } from "./dashboard";
 
 const COURSE_HISTORY_ENDPOINT =
   `${API_BASE_URL}/api/dashboard/student/course-history`;
+const ENROLLED_COURSES_ENDPOINT =
+  `${API_BASE_URL}/api/dashboard/student/enrolled-courses`;
 
 const defaultCourseHistory = {
   courseHistory: [
@@ -23,6 +25,19 @@ const defaultCourseHistory = {
       courseName: "Biology I",
       credits: "3.0",
       status: "PASSED",
+    },
+  ],
+};
+
+const defaultEnrolledCourses = {
+  enrolledCourses: [
+    {
+      courseName: "English Composition",
+      credits: "3.0",
+    },
+    {
+      courseName: "Biology I",
+      credits: "2.0",
     },
   ],
 };
@@ -47,6 +62,9 @@ export const Default: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get(ENROLLED_COURSES_ENDPOINT, () =>
+          HttpResponse.json(defaultEnrolledCourses),
+        ),
         http.get(COURSE_HISTORY_ENDPOINT, () =>
           HttpResponse.json(defaultCourseHistory),
         ),
@@ -59,6 +77,9 @@ export const Empty: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get(ENROLLED_COURSES_ENDPOINT, () =>
+          HttpResponse.json({ enrolledCourses: [] }),
+        ),
         http.get(COURSE_HISTORY_ENDPOINT, () =>
           HttpResponse.json({ courseHistory: [] }),
         ),
@@ -71,6 +92,7 @@ export const ErrorState: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get(ENROLLED_COURSES_ENDPOINT, () => new HttpResponse(null, { status: 500 })),
         http.get(COURSE_HISTORY_ENDPOINT, () => new HttpResponse(null, { status: 500 })),
       ],
     },
@@ -81,6 +103,10 @@ export const LoadingState: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get(ENROLLED_COURSES_ENDPOINT, async () => {
+          await new Promise(() => undefined);
+          return HttpResponse.json(defaultEnrolledCourses);
+        }),
         http.get(COURSE_HISTORY_ENDPOINT, async () => {
           await new Promise(() => undefined);
           return HttpResponse.json(defaultCourseHistory);
