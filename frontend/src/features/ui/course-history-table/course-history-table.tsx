@@ -7,6 +7,10 @@ export interface CourseHistoryTableProps {
 
 export function CourseHistoryTable({ courseHistory }: CourseHistoryTableProps) {
   const totalPoints = courseHistory.reduce((sum, line) => {
+    if (line.status.toUpperCase() !== "PASSED") {
+      return sum;
+    }
+
     const parsedCredits = Number.parseFloat(line.credits);
     return Number.isFinite(parsedCredits) ? sum + parsedCredits : sum;
   }, 0);
