@@ -1,7 +1,9 @@
 package com.maplewood.services;
 
 import org.springframework.stereotype.Service;
+import com.maplewood.domain.Semester;
 import com.maplewood.repositories.CourseRepository;
+import com.maplewood.repositories.SemesterRepository;
 import com.maplewood.repositories.StudentEnrollmentRepository;
 import jakarta.transaction.Transactional;
 import com.maplewood.domain.Course;
@@ -16,14 +18,17 @@ import org.springframework.lang.NonNull;
 @Service
 public class CourseService {
     private final CourseRepository courseRepository;
+    private final SemesterRepository semesterRepository;
     private final StudentService studentService;
     private final StudentEnrollmentRepository studentEnrollmentRepository;
 
     public CourseService(
             CourseRepository courseRepository,
+            SemesterRepository semesterRepository,
             StudentService studentService,
             StudentEnrollmentRepository studentEnrollmentRepository) {
         this.courseRepository = courseRepository;
+        this.semesterRepository = semesterRepository;
         this.studentService = studentService;
         this.studentEnrollmentRepository = studentEnrollmentRepository;
     }
@@ -33,10 +38,10 @@ public class CourseService {
         return courseRepository.findAllWithSpecializationAndPrerequisite(pageable);
     }
 
-    /* Get courses for a specific semester */
-    public Page<Course> findCoursesBySemesterOrder(@NonNull Pageable pageable) {
-        var currentSemesterOrder = SemesterOrder.getCurrentSemesterOrder();
-        return courseRepository.findAllBySemesterOrder(currentSemesterOrder, pageable);
+    /* Get courses for the active semester */
+    public Page<Course> findCoursesForActiveSemester(@NonNull Pageable pageable) {
+        var activeSemesterOrder = getActiveSemesterOrder();
+        return courseRepository.findAllBySemesterOrder(activeSemesterOrder, pageable);
     }
 
 
@@ -49,10 +54,10 @@ public class CourseService {
     public Page<Course> findCoursesForStudent(@NonNull Integer studentId,
             @NonNull Pageable pageable) {
         var student = studentService.findStudentById(studentId);
-        var currentSemesterOrder = SemesterOrder.getCurrentSemesterOrder();
-        var currentSemesterCourses = courseRepository
-                .findAllCoursesBySemesterOrder(Objects.requireNonNull(currentSemesterOrder));
-        var eligibleCoursesIds = currentSemesterCourses.stream()
+        var activeSemesterOrder = getActiveSemesterOrder();
+        var activeSemesterCourses = courseRepository.findAllCoursesBySemesterOrder(
+                activeSemesterOrder);
+        var eligibleCoursesIds = activeSemesterCourses.stream()
                 .filter(course -> studentService.canTakeCourse(student, course).isEmpty())
                 .map(Course::getId).toList();
 
@@ -85,5 +90,12 @@ public class CourseService {
 
 
 
+    }
+
+    private SemesterOrder getActiveSemesterOrder() {
+        return semesterRepository.findFirstByActiveTrueOrderByYearDescOrderInYearDesc()
+                .map(Semester::getOrderInYear)
+                .filter(Objects::nonNull)
+                .orElseThrow(() -> new RuntimeException("No active semester found for courses"));
     }
 }

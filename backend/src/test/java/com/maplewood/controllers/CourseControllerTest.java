@@ -162,7 +162,7 @@ class CourseControllerTest {
         var introBiology = createCourse(1, "BIO100", "Intro Biology", "Biology intro", 3.0, 3,
                 science, null, CourseType.CORE, 9, 10, SemesterOrder.SPRING);
 
-        when(courseService.findCoursesBySemesterOrder(any()))
+        when(courseService.findCoursesForActiveSemester(any()))
                 .thenReturn(new PageImpl<>(List.of(introBiology), PageRequest.of(0, 100), 1));
 
         mockMvc.perform(get("/api/courses/semester").accept(MediaType.APPLICATION_JSON))
@@ -173,7 +173,7 @@ class CourseControllerTest {
                 .andExpect(jsonPath("$[0].specialization").value("Science"))
                 .andExpect(jsonPath("$[0].prerequisite").value(nullValue()));
 
-        verify(courseService).findCoursesBySemesterOrder(any());
+        verify(courseService).findCoursesForActiveSemester(any());
     }
 
     /**
