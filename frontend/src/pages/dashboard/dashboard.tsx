@@ -20,6 +20,11 @@ export function Dashboard() {
     isPending: isPendingStudentInfo,
     isError: isErrorStudentInfo,
   } = useStudentInfoQuery();
+  const earnedCredits = studentInfo?.earnedCredits;
+  const safeEarnedCredits = typeof earnedCredits === "number" ? earnedCredits : 0;
+  const creditsProgressValue = Math.min(safeEarnedCredits, 30);
+  const gradeLevelValue = studentInfo?.gradeLevel;
+  const enrolledCourseCount = enrolledCourses?.length;
 
   return (
     <section className={styles.pagePanel}>
@@ -48,6 +53,34 @@ export function Dashboard() {
           <dd className={styles.studentInfoValue}>{studentInfo.status ?? "Unknown"}</dd>
         </dl>
       ) : null}
+
+      <section aria-label="dashboard metrics" className={styles.widgetsGrid}>
+        <article className={styles.widget}>
+          <h2 className={styles.widgetTitle}>Credits earned</h2>
+          <p className={styles.widgetValue}>
+            {isPendingStudentInfo ? "..." : `${safeEarnedCredits.toFixed(1)} / 30`}
+          </p>
+          <progress
+            className={styles.widgetProgress}
+            max={30}
+            value={isPendingStudentInfo ? 0 : creditsProgressValue}
+          />
+        </article>
+
+        <article className={styles.widget}>
+          <h2 className={styles.widgetTitle}>Grade level</h2>
+          <p className={styles.widgetValue}>
+            {isPendingStudentInfo ? "..." : gradeLevelValue ?? "Unknown"}
+          </p>
+        </article>
+
+        <article className={styles.widget}>
+          <h2 className={styles.widgetTitle}>Courses this semester</h2>
+          <p className={styles.widgetValue}>
+            {isPendingEnrolledCourses ? "..." : `${enrolledCourseCount ?? 0} / 5`}
+          </p>
+        </article>
+      </section>
 
       {isPendingEnrolledCourses ? (
         <p className={styles.stateText}>Loading enrolled courses...</p>
