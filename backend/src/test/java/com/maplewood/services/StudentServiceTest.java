@@ -1,6 +1,7 @@
 package com.maplewood.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +29,47 @@ class StudentServiceTest {
 
     @InjectMocks
     private StudentService studentService;
+
+    /**
+     * Given: a student that exists and repository-calculated earned credits
+     *
+     * When: getStudentDashboardInformation is called
+     *
+     * Then: the response should include both the student and earned credits
+     */
+    @Test
+    void getStudentDashboardInformationReturnsStudentAndEarnedCredits() {
+        var student = buildStudent(7, 11);
+
+        when(studentRepository.findById(7)).thenReturn(java.util.Optional.of(student));
+        when(studentCourseHistoryRepository.findEarnedCreditsByStudentId(7)).thenReturn(18.0);
+
+        var dashboardInformation = studentService.getStudentDashboardInformation(7);
+
+        assertThat(dashboardInformation.student().getId()).isEqualTo(7);
+        assertThat(dashboardInformation.earnedCredits()).isEqualTo(18.0);
+        verify(studentRepository).findById(7);
+        verify(studentCourseHistoryRepository).findEarnedCreditsByStudentId(7);
+    }
+
+    /**
+     * Given: a student id that does not exist
+     *
+     * When: getStudentDashboardInformation is called
+     *
+     * Then: it should throw a student-not-found exception and not query earned credits
+     */
+    @Test
+    void getStudentDashboardInformationThrowsWhenStudentNotFound() {
+        when(studentRepository.findById(99)).thenReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> studentService.getStudentDashboardInformation(99))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Student not found");
+
+        verify(studentRepository).findById(99);
+        verify(studentCourseHistoryRepository, never()).findEarnedCreditsByStudentId(99);
+    }
 
     /**
      * Given: a student outside a course grade range
