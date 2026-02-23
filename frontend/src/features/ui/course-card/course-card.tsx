@@ -5,7 +5,6 @@ export interface CourseCardProps {
   code: string;
   credits: number;
   specialization: string;
-  viewCourseLabel?: string;
   onViewCourse?: () => void;
 }
 
@@ -14,9 +13,10 @@ export function CourseCard({
   code,
   credits,
   specialization,
-  viewCourseLabel = "View Course",
   onViewCourse,
 }: CourseCardProps) {
+  const viewCourseAriaLabel = `View Course: ${name} (${code})`;
+
   return (
     <article className={styles.card}>
       <header className={styles.header}>
@@ -35,8 +35,13 @@ export function CourseCard({
         </p>
       </footer>
 
-      <button className={styles.actionButton} onClick={onViewCourse} type="button">
-        {viewCourseLabel}
+      <button
+        aria-label={viewCourseAriaLabel}
+        className={styles.actionButton}
+        onClick={onViewCourse}
+        type="button"
+      >
+        View Course
       </button>
     </article>
   );
