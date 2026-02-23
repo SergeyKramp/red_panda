@@ -10,6 +10,9 @@ export interface CourseGridProps {
 export function CourseGrid({ courses, onViewCourse }: CourseGridProps) {
   return (
     <section className={styles.gridViewport}>
+      {courses.length === 0 ? (
+        <p className={styles.emptyStateText}>No courses found.</p>
+      ) : null}
       <div className={styles.grid}>
         {courses.map((course) => (
           <CourseCard
