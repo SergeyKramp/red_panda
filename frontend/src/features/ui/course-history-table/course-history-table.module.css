@@ -76,3 +76,9 @@
 .totalValue {
   text-align: left;
 }
+
+.empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}

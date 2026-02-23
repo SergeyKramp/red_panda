@@ -25,12 +25,20 @@ export function EnrollmentsTable({ enrolledCourses }: EnrollmentsTableProps) {
         </thead>
 
         <tbody>
-          {enrolledCourses.map((line, index) => (
-            <tr key={`${line.courseName}-${index}`}>
-              <td>{line.courseName}</td>
-              <td>{line.credits}</td>
+          {enrolledCourses.length === 0 ? (
+            <tr>
+              <td className={styles.empty} colSpan={2}>
+                No active enrollments yet.
+              </td>
             </tr>
-          ))}
+          ) : (
+            enrolledCourses.map((line, index) => (
+              <tr key={`${line.courseName}-${index}`}>
+                <td>{line.courseName}</td>
+                <td>{line.credits}</td>
+              </tr>
+            ))
+          )}
         </tbody>
 
         <tfoot>

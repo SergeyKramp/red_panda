@@ -15,9 +15,6 @@ export function Dashboard() {
     isError: isErrorEnrolledCourses,
   } = useEnrolledCoursesQuery();
 
-  const hasCourseHistory = (courseHistory?.length ?? 0) > 0;
-  const hasEnrolledCourses = (enrolledCourses?.length ?? 0) > 0;
-
   return (
     <section className={styles.pagePanel}>
       <header className={styles.header}>
@@ -33,11 +30,7 @@ export function Dashboard() {
         <p className={styles.stateText}>Failed to load enrolled courses.</p>
       ) : null}
 
-      {!isPendingEnrolledCourses && !isErrorEnrolledCourses && !hasEnrolledCourses ? (
-        <p className={styles.stateText}>No active enrollments yet.</p>
-      ) : null}
-
-      {!isPendingEnrolledCourses && !isErrorEnrolledCourses && hasEnrolledCourses ? (
+      {!isPendingEnrolledCourses && !isErrorEnrolledCourses ? (
         <EnrollmentsTable enrolledCourses={enrolledCourses ?? []} />
       ) : null}
 
@@ -49,7 +42,7 @@ export function Dashboard() {
         <p className={styles.stateText}>Failed to load course history.</p>
       ) : null}
 
-      {!isPendingCourseHistory && !isErrorCourseHistory && hasCourseHistory ? (
+      {!isPendingCourseHistory && !isErrorCourseHistory ? (
         <CourseHistoryTable courseHistory={courseHistory ?? []} />
       ) : null}
     </section>

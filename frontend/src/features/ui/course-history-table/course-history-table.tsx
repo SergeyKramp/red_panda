@@ -26,23 +26,31 @@ export function CourseHistoryTable({ courseHistory }: CourseHistoryTableProps) {
         </thead>
 
         <tbody>
-          {courseHistory.map((line, index) => (
-            <tr key={`${line.courseName}-${line.status}-${index}`}>
-              <td>{line.courseName}</td>
-              <td>
-                <span
-                  className={`${styles.statusBadge} ${
-                    line.status.toUpperCase() === "PASSED"
-                      ? styles.passed
-                      : styles.failed
-                  }`}
-                >
-                  {line.status}
-                </span>
+          {courseHistory.length === 0 ? (
+            <tr>
+              <td className={styles.empty} colSpan={3}>
+                No course history available yet.
               </td>
-              <td>{line.credits}</td>
             </tr>
-          ))}
+          ) : (
+            courseHistory.map((line, index) => (
+              <tr key={`${line.courseName}-${line.status}-${index}`}>
+                <td>{line.courseName}</td>
+                <td>
+                  <span
+                    className={`${styles.statusBadge} ${
+                      line.status.toUpperCase() === "PASSED"
+                        ? styles.passed
+                        : styles.failed
+                    }`}
+                  >
+                    {line.status}
+                  </span>
+                </td>
+                <td>{line.credits}</td>
+              </tr>
+            ))
+          )}
         </tbody>
 
         <tfoot>
