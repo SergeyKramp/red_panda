@@ -86,67 +86,6 @@ class StudentCourseHistoryRepositoryTest {
     }
 
     /**
-     * Given: a student with history in active and inactive semesters plus another student's active
-     * history
-     *
-     * When: countActiveSemesterCoursesByStudentId is called for the target student
-     *
-     * Then: only that student's active-semester enrollments should be counted
-     */
-    @Test
-    void countActiveSemesterCoursesByStudentIdCountsOnlyTargetStudentActiveSemesterRecords() {
-        var specialization = persistSpecialization("History");
-        var targetStudent = persistStudent("active-target@student.test");
-        var otherStudent = persistStudent("active-other@student.test");
-
-        var worldHistory = persistCourse("HIS101", "World History", specialization);
-        var civics = persistCourse("HIS102", "Civics", specialization);
-        var geography = persistCourse("HIS103", "Geography", specialization);
-
-        var activeSemester = persistSemester("Fall", 2026, SemesterOrder.FALL, true);
-        var inactiveSemester = persistSemester("Spring", 2026, SemesterOrder.SPRING, false);
-
-        persistHistory(targetStudent, worldHistory, activeSemester, CourseHistoryStatus.PASSED);
-        persistHistory(targetStudent, civics, activeSemester, CourseHistoryStatus.FAILED);
-        persistHistory(targetStudent, geography, inactiveSemester, CourseHistoryStatus.PASSED);
-        persistHistory(otherStudent, geography, activeSemester, CourseHistoryStatus.PASSED);
-
-        entityManager.flush();
-        entityManager.clear();
-
-        var activeCourseCount = studentCourseHistoryRepository
-                .countActiveSemesterCoursesByStudentId(targetStudent.getId());
-
-        assertThat(activeCourseCount).isEqualTo(2);
-    }
-
-    /**
-     * Given: a student with history only in inactive semesters
-     *
-     * When: countActiveSemesterCoursesByStudentId is called
-     *
-     * Then: zero should be returned
-     */
-    @Test
-    void countActiveSemesterCoursesByStudentIdReturnsZeroWhenNoActiveSemesterRecordsExist() {
-        var specialization = persistSpecialization("Computer Science");
-        var student = persistStudent("inactive-only@student.test");
-
-        var programming = persistCourse("CSC101", "Programming I", specialization);
-        var inactiveSemester = persistSemester("Spring", 2027, SemesterOrder.SPRING, false);
-
-        persistHistory(student, programming, inactiveSemester, CourseHistoryStatus.PASSED);
-
-        entityManager.flush();
-        entityManager.clear();
-
-        var activeCourseCount = studentCourseHistoryRepository
-                .countActiveSemesterCoursesByStudentId(student.getId());
-
-        assertThat(activeCourseCount).isZero();
-    }
-
-    /**
      * Given: a student with passed and failed records, repeated pass records for the same course,
      * and another student's passed record
      *
@@ -244,16 +183,11 @@ class StudentCourseHistoryRepositoryTest {
     }
 
     private Semester persistSemester(String name, Integer year, SemesterOrder order) {
-        return persistSemester(name, year, order, false);
-    }
-
-    private Semester persistSemester(String name, Integer year, SemesterOrder order,
-            boolean active) {
         var semester = new Semester();
         semester.setName(name);
         semester.setYear(year);
         semester.setOrderInYear(order);
-        semester.setActive(active);
+        semester.setActive(false);
         return entityManager.persistFlushFind(semester);
     }
 

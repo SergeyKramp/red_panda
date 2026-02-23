@@ -167,7 +167,7 @@ class StudentServiceTest {
         when(studentCourseHistoryRepository.findPassedCourseIdsByStudentId(1)).thenReturn(Set.of());
         when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
                 StudentEnrollmentStatus.ENROLLED)).thenReturn(false);
-        when(studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(1))
+        when(studentEnrollmentRepository.countEnrolledCoursesByStudentIdInActiveSemester(1))
                 .thenReturn(5L);
 
         var eligible = studentService.canTakeCourse(student, course);
@@ -192,7 +192,7 @@ class StudentServiceTest {
                 .thenReturn(Set.of(100));
         when(studentEnrollmentRepository.existsByStudentIdAndCourseIdAndStatus(1, 101,
                 StudentEnrollmentStatus.ENROLLED)).thenReturn(false);
-        when(studentCourseHistoryRepository.countActiveSemesterCoursesByStudentId(1))
+        when(studentEnrollmentRepository.countEnrolledCoursesByStudentIdInActiveSemester(1))
                 .thenReturn(3L);
 
         var eligible = studentService.canTakeCourse(student, course);
