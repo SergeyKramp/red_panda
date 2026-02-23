@@ -49,9 +49,21 @@ export const CourseHistoryResponseZod = z.object({
   courseHistory: z.array(CourseHistoryLineDtoZod),
 });
 
+// Matches backend EnrolledCourseDTO returned inside /api/dashboard/student/enrolled-courses.
+export const EnrolledCourseLineDtoZod = z.object({
+  courseName: z.string().min(1),
+  credits: z.string().min(1),
+});
+
+export const EnrolledCoursesResponseZod = z.object({
+  enrolledCourses: z.array(EnrolledCourseLineDtoZod),
+});
+
 export type CourseInfo = z.infer<typeof CourseDtoZod>;
 export type CourseHistoryLine = z.infer<typeof CourseHistoryLineDtoZod>;
 export type CourseHistoryResponse = z.infer<typeof CourseHistoryResponseZod>;
+export type EnrolledCourseLine = z.infer<typeof EnrolledCourseLineDtoZod>;
+export type EnrolledCoursesResponse = z.infer<typeof EnrolledCoursesResponseZod>;
 
 export type EnrollmentFailureCode = z.infer<typeof EnrollmentFailureCodeZod>;
 export type EnrollmentFailureResponse = z.infer<typeof EnrollmentFailureResponseZod>;

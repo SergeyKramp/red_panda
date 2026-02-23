@@ -9,7 +9,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 30rem;
+  min-width: 22rem;
 }
 
 .caption {
@@ -47,26 +47,6 @@
 
 .table tfoot td {
   font-weight: 700;
-}
-
-.statusBadge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.passed {
-  background-color: rgba(85, 107, 47, 0.15);
-  color: var(--color-accent);
-}
-
-.failed {
-  background-color: rgba(160, 82, 45, 0.17);
-  color: var(--color-primary);
 }
 
 .totalLabel {
