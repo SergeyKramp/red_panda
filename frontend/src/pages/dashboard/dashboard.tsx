@@ -61,6 +61,8 @@ export function Dashboard() {
             {isPendingStudentInfo ? "..." : `${safeEarnedCredits.toFixed(1)} / 30`}
           </p>
           <progress
+            aria-label="Credits earned progress"
+            aria-valuetext={`${safeEarnedCredits.toFixed(1)} out of 30 credits`}
             className={styles.widgetProgress}
             max={30}
             value={isPendingStudentInfo ? 0 : creditsProgressValue}

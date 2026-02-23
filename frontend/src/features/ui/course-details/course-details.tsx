@@ -87,6 +87,7 @@ export function CourseDetails({
         ) : null}
 
         <button
+          aria-label={`Sign up for ${course.name}`}
           className={styles.signUpButton}
           disabled={isPending}
           onClick={handleSignUpCourse}
