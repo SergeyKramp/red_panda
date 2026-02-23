@@ -1,21 +1,47 @@
 import { CourseInfo } from "features/api";
+import {
+  getEnrollmentFailureMessage,
+  useEnrollInCourseMutation,
+} from "features/enrollment";
+import { useEffect, useState } from "react";
 import styles from "./course-details.module.css";
 
 export interface CourseDetailsProps {
   course: CourseInfo;
-  onSignUpCourse?: (course: CourseInfo) => void;
-  isEnrollmentPending?: boolean;
-  enrollmentMessage?: string | null;
-  enrollmentMessageTone?: "error" | "success";
 }
 
 export function CourseDetails({
   course,
-  onSignUpCourse,
-  isEnrollmentPending = false,
-  enrollmentMessage = null,
-  enrollmentMessageTone = "error",
 }: CourseDetailsProps) {
+  const [enrollmentMessage, setEnrollmentMessage] = useState<string | null>(null);
+  const [enrollmentMessageTone, setEnrollmentMessageTone] = useState<"error" | "success">("error");
+  const { isPending, mutateAsync, reset } = useEnrollInCourseMutation();
+
+  useEffect(() => {
+    setEnrollmentMessage(null);
+    setEnrollmentMessageTone("error");
+    reset();
+  }, [course.id, reset]);
+
+  const handleSignUpCourse = async () => {
+    setEnrollmentMessage(null);
+    setEnrollmentMessageTone("error");
+
+    try {
+      const result = await mutateAsync(course.id);
+
+      if (!result.ok) {
+        setEnrollmentMessage(getEnrollmentFailureMessage(result.code));
+        return;
+      }
+
+      setEnrollmentMessageTone("success");
+      setEnrollmentMessage("Enrollment successful. You have successfully enrolled in this course.");
+    } catch {
+      setEnrollmentMessage("Enrollment failed. Please try again.");
+    }
+  };
+
   return (
     <div className={styles.courseDetails}>
       <p className={styles.courseDescription}>{course.description}</p>
@@ -49,24 +75,26 @@ export function CourseDetails({
         </div>
       </dl>
 
-      {enrollmentMessage ? (
-        <p
-          aria-live="polite"
-          className={`${styles.enrollmentMessage} ${enrollmentMessageTone === "success" ? styles.enrollmentMessageSuccess : styles.enrollmentMessageError}`}
-          role="status"
-        >
-          {enrollmentMessage}
-        </p>
-      ) : null}
+      <div className={styles.enrollmentFooter}>
+        {enrollmentMessage ? (
+          <p
+            aria-live="polite"
+            className={`${styles.enrollmentMessage} ${enrollmentMessageTone === "success" ? styles.enrollmentMessageSuccess : styles.enrollmentMessageError}`}
+            role="status"
+          >
+            {enrollmentMessage}
+          </p>
+        ) : null}
 
-      <button
-        className={styles.signUpButton}
-        disabled={isEnrollmentPending}
-        onClick={() => onSignUpCourse?.(course)}
-        type="button"
-      >
-        {isEnrollmentPending ? "Signing up..." : "Sign Up for Course"}
-      </button>
+        <button
+          className={styles.signUpButton}
+          disabled={isPending}
+          onClick={handleSignUpCourse}
+          type="button"
+        >
+          {isPending ? "Signing up..." : "Sign Up for Course"}
+        </button>
+      </div>
     </div>
   );
 }

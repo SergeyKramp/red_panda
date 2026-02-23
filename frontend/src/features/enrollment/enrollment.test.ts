@@ -2,7 +2,7 @@ import { HttpResponse, http } from "msw";
 import { beforeEach, describe, expect, test } from "vitest";
 import { API_BASE_URL } from "features/api";
 import { mockServer } from "test-utils/mock-server";
-import { EnrollmentConflictError, enrollInCourse } from "./enrollment";
+import { enrollInCourse } from "./enrollment";
 
 const ENROLLMENT_ENDPOINT = `${API_BASE_URL}/api/courses/enroll/c`;
 
@@ -32,10 +32,10 @@ describe("enrollInCourse", () => {
       http.post(`${ENROLLMENT_ENDPOINT}/:courseId`, () => new HttpResponse(null, { status: 204 })),
     );
 
-    await expect(enrollInCourse(101)).resolves.toBeUndefined();
+    await expect(enrollInCourse(101)).resolves.toEqual({ ok: true });
   });
 
-  test("throws EnrollmentConflictError with code and server message for 409 responses", async () => {
+  test("returns enrollment conflict code for 409 responses", async () => {
     mockServer.use(
       http.post(`${ENROLLMENT_ENDPOINT}/:courseId`, () =>
         HttpResponse.json(
@@ -48,12 +48,10 @@ describe("enrollInCourse", () => {
       ),
     );
 
-    await expect(enrollInCourse(101)).rejects.toMatchObject({
-      name: "EnrollmentConflictError",
+    await expect(enrollInCourse(101)).resolves.toEqual({
+      ok: false,
       code: "COURSE_ALREADY_ENROLLED",
-      message: "You are already enrolled in this course.",
-      status: 409,
-    } satisfies Partial<EnrollmentConflictError>);
+    });
   });
 
   test("throws standard error for non-409 failure responses", async () => {

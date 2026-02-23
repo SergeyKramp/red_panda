@@ -8,38 +8,23 @@ const ENROLLMENT_ENDPOINT = `${API_BASE_URL}/api/courses/enroll/c`;
 const CSRF_COOKIE_NAME = "XSRF-TOKEN";
 const CSRF_HEADER_NAME = "X-XSRF-TOKEN";
 
-export class EnrollmentConflictError extends Error {
-  readonly code: EnrollmentFailureCode;
-  readonly status: number;
+const enrollmentFailureMessageByCode: Record<EnrollmentFailureCode, string> = {
+  INVALID_INPUT: "Enrollment request is invalid. Please refresh and try again.",
+  GRADE_LEVEL_MISMATCH: "Your grade level is not eligible for this course.",
+  COURSE_ALREADY_PASSED: "You have already passed this course.",
+  COURSE_ALREADY_ENROLLED: "You are already enrolled in this course.",
+  PREREQUISITE_NOT_MET: "You need to complete the prerequisite course first.",
+  MAX_COURSES_REACHED: "You have already reached the maximum number of active semester courses.",
+  UNKNOWN: "Enrollment could not be completed due to a course rule conflict.",
+};
 
-  constructor(code: EnrollmentFailureCode, message: string, status: number) {
-    super(message);
-    this.name = "EnrollmentConflictError";
-    this.code = code;
-    this.status = status;
-  }
+export function getEnrollmentFailureMessage(code: EnrollmentFailureCode): string {
+  return enrollmentFailureMessageByCode[code] ?? enrollmentFailureMessageByCode.UNKNOWN;
 }
 
-export function describeEnrollmentFailure(code: EnrollmentFailureCode): string {
-  switch (code) {
-    case "INVALID_INPUT":
-      return "Enrollment request is invalid. Please refresh and try again.";
-    case "GRADE_LEVEL_MISMATCH":
-      return "Your grade level is not eligible for this course.";
-    case "COURSE_ALREADY_PASSED":
-      return "You have already passed this course.";
-    case "COURSE_ALREADY_ENROLLED":
-      return "You are already enrolled in this course.";
-    case "PREREQUISITE_NOT_MET":
-      return "You need to complete the prerequisite course first.";
-    case "MAX_COURSES_REACHED":
-      return "You have already reached the maximum number of active semester courses.";
-    case "UNKNOWN":
-      return "Enrollment could not be completed due to a course rule conflict.";
-    default:
-      return "Enrollment could not be completed.";
-  }
-}
+export type EnrollInCourseResult =
+  | { ok: true }
+  | { ok: false; code: EnrollmentFailureCode };
 
 function getCookieValue(cookieName: string): string | null {
   const targetPrefix = `${cookieName}=`;
@@ -53,7 +38,7 @@ function getCookieValue(cookieName: string): string | null {
   return decodeURIComponent(matchedCookie.slice(targetPrefix.length));
 }
 
-export async function enrollInCourse(courseId: number): Promise<void> {
+export async function enrollInCourse(courseId: number): Promise<EnrollInCourseResult> {
   const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
   const response = await fetch(`${ENROLLMENT_ENDPOINT}/${courseId}`, {
     method: "POST",
@@ -62,18 +47,16 @@ export async function enrollInCourse(courseId: number): Promise<void> {
   });
 
   if (response.ok) {
-    return;
+    return { ok: true };
   }
 
   if (response.status === 409) {
     const responseBody = await response.json().catch(() => null);
     const parsedResponse = EnrollmentFailureResponseZod.safeParse(responseBody);
-    const enrollmentCode = parsedResponse.success
+    const code = parsedResponse.success
       ? parsedResponse.data.messageCode
       : "UNKNOWN";
-    const fallbackMessage = describeEnrollmentFailure(enrollmentCode);
-
-    throw new EnrollmentConflictError(enrollmentCode, fallbackMessage, 409);
+    return { ok: false, code };
   }
 
   throw new Error(`Failed to enroll in course: ${response.status}`);
