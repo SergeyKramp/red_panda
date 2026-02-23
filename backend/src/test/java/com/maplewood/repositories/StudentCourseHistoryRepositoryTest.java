@@ -146,6 +146,67 @@ class StudentCourseHistoryRepositoryTest {
         assertThat(activeCourseCount).isZero();
     }
 
+    /**
+     * Given: a student with passed and failed records, repeated pass records for the same course,
+     * and another student's passed record
+     *
+     * When: findEarnedCreditsByStudentId is called for the target student
+     *
+     * Then: earned credits should sum only distinct passed courses for that student
+     */
+    @Test
+    void findEarnedCreditsByStudentIdSumsOnlyDistinctPassedCoursesForTargetStudent() {
+        var specialization = persistSpecialization("Science");
+        var targetStudent = persistStudent("credits-target@student.test");
+        var otherStudent = persistStudent("credits-other@student.test");
+
+        var biology = persistCourse("BIO101", "Biology I", specialization, 3.0);
+        var chemistry = persistCourse("CHE101", "Chemistry I", specialization, 2.0);
+        var physics = persistCourse("PHY101", "Physics I", specialization, 4.0);
+
+        var fall2025 = persistSemester("Fall", 2025, SemesterOrder.FALL);
+        var spring2026 = persistSemester("Spring", 2026, SemesterOrder.SPRING);
+
+        persistHistory(targetStudent, biology, fall2025, CourseHistoryStatus.PASSED);
+        persistHistory(targetStudent, biology, spring2026, CourseHistoryStatus.PASSED);
+        persistHistory(targetStudent, chemistry, spring2026, CourseHistoryStatus.FAILED);
+        persistHistory(otherStudent, physics, fall2025, CourseHistoryStatus.PASSED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var earnedCredits = studentCourseHistoryRepository
+                .findEarnedCreditsByStudentId(targetStudent.getId());
+
+        assertThat(earnedCredits).isEqualTo(3.0);
+    }
+
+    /**
+     * Given: a student with no passed courses
+     *
+     * When: findEarnedCreditsByStudentId is called
+     *
+     * Then: zero credits should be returned
+     */
+    @Test
+    void findEarnedCreditsByStudentIdReturnsZeroWhenNoPassedCoursesExist() {
+        var specialization = persistSpecialization("Math");
+        var student = persistStudent("credits-none@student.test");
+
+        var algebra = persistCourse("MAT101", "Algebra I", specialization, 3.0);
+
+        var fall2025 = persistSemester("Fall", 2025, SemesterOrder.FALL);
+        persistHistory(student, algebra, fall2025, CourseHistoryStatus.FAILED);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        var earnedCredits = studentCourseHistoryRepository
+                .findEarnedCreditsByStudentId(student.getId());
+
+        assertThat(earnedCredits).isZero();
+    }
+
     private Specialization persistSpecialization(String name) {
         var specialization = new Specialization();
         specialization.setName(name);
@@ -164,10 +225,15 @@ class StudentCourseHistoryRepositoryTest {
     }
 
     private Course persistCourse(String code, String name, Specialization specialization) {
+        return persistCourse(code, name, specialization, 3.0);
+    }
+
+    private Course persistCourse(String code, String name, Specialization specialization,
+            Double credits) {
         var course = new Course();
         course.setCode(code);
         course.setName(name);
-        course.setCredits(3.0);
+        course.setCredits(credits);
         course.setHoursPerWeek(3);
         course.setCourseType(CourseType.CORE);
         course.setSemesterOrder(SemesterOrder.FALL);
