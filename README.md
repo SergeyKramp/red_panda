@@ -36,6 +36,7 @@ cd frontend
 npm install
 npm start
 ```
+Frontend URL: `http://localhost:3000`
 
 ### 3. Login
 
