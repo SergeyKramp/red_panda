@@ -1,24 +1,22 @@
 # Maplewood Course Planning System
 
 
-## TLDR
+## TL;DR
 
 ### What I completed
 
-- There is a working course catalog where student can browse couses and see details. There are filters for getting
-courses by semester and eligible courses for the logged-in student.
-- There is an enrollment workflow with validation for grade level, prerequisites, already-passed prevention, already-enrolled prevention, and max 5 courses per active semester.
-- There is a student dashboard where they can see their info, course history, and currently enrolled courses and 
-credits progress.
+- There is a working course catalog where students can browse courses and see details. There are filters for getting courses by semester and eligible courses for the logged-in student.
+- There is an enrollment workflow with validation for grade level, prerequisites, already-passed prevention, already-enrolled prevention, and a max of 5 courses per active semester.
+- There is a student dashboard where students can see their info, course history, currently enrolled courses, and credit progress.
 
 ### What is still left
 
 - The calendar page is a placeholder and the scheduling workflow is not implemented yet.
-- There are some Github issues that list improvements I didn't have the time to implement.
+- There are some GitHub issues that list improvements I did not have time to implement.
 
 ## How to run the project
 
-Open this repository in the dev container or intall the prerequisites locally.
+Open this repository in the dev container or install the prerequisites locally.
 
 ### 1. Run backend
 
@@ -47,7 +45,7 @@ Frontend URL: `http://localhost:3000`
 
 ### Backend architecture
 
-- Typical Spring boot layered structure: `controllers -> services -> repositories -> domain`.
+- Typical Spring Boot layered structure: `controllers -> services -> repositories -> domain`.
 - Spring Data JPA repositories handle data access and custom queries.
 - Business rules are centralized in `StudentService.canTakeCourse(...)` and reused by `CourseService`.
 - Session-based auth with Spring Security + CSRF protection for SPA requests.
