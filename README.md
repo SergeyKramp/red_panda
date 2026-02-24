@@ -1,91 +1,113 @@
-# 🏫 Maplewood High School - Course Planning Challenge
+# Maplewood Course Planning System
 
-Build a full-stack course planning application for students to browse courses, plan their semester schedule, and track graduation progress.
 
-**Tech Stack**: Spring Boot + React + TypeScript + State Management Library
+## TLDR
 
----
+### What I completed
 
-## 🎯 Requirements
+- There is a working course catalog where student can browse couses and see details. There are filters for getting
+courses by semester and eligible courses for the logged-in student.
+- There is an enrollment workflow with validation for grade level, prerequisites, already-passed prevention, already-enrolled prevention, and max 5 courses per active semester.
+- There is a student dashboard where they can see their info, course history, and currently enrolled courses and 
+credits progress.
 
-### **Backend API (Spring Boot)**
+### What is still left
 
-**Required Endpoints:**
-- List courses (with filters for grade/semester)
-- Student profile with academic history, GPA, credits
-- Enroll in a course (validate prerequisites, conflicts, max 5 courses)
-- Current semester schedule
+- The calendar page is a placeholder and the scheduling workflow is not implemented yet.
+- There are some Github issues that list improvements I didn't have the time to implement.
 
-**Business Rules:**
-- Prerequisites must be passed before enrollment
-- Max 5 courses per semester
-- 30 credits to graduate
-- No time slot conflicts
+## How to run the project
 
-### **Frontend (React + TypeScript)**
+Open this repository in the dev container or intall the prerequisites locally.
 
-**Required Features:**
-- **Course Browser** - List/filter courses with details (credits, prerequisites)
-- **Schedule Builder** - Add/remove courses with real-time validation (prerequisites, conflicts, limits)
-- **Student Dashboard** - GPA, credits, graduation progress
+### 1. Run backend
 
-**State Management:**
-Implement centralized state using Redux Toolkit, Zustand, Jotai, Context+useReducer, or your preferred solution. Handle loading states, errors, and optimistic updates.
-
----
-
-## 🗄️ Database
-
-Pre-populated SQLite database (`maplewood_school.sqlite`) with 400 students, 57 courses, and ~6,700 historical records.
-
-**Key Tables:** `students`, `courses`, `student_course_history`, `semesters` (see [DATABASE.md](./DATABASE.md))
-
-**Your Task:** Create additional tables for course sections, time slots, and current semester enrollments.
-
----
-
-## 🚀 Setup
-
-**Dev Container (Recommended):** Open in VS Code with Dev Containers extension - everything pre-configured.
-
-**Manual Setup:** Java 17, Maven 3.8+, Node.js 20+, SQLite 3
-
-## 📁 Project Structure
-
-Create your project with the following structure:
-
-```
-fullstack-challenge/
-├── backend/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/maplewood/
-│   │   │   │       ├── controller/
-│   │   │   │       ├── service/
-│   │   │   │       ├── repository/
-│   │   │   │       ├── model/
-│   │   │   │       └── dto/
-│   │   │   └── resources/
-│   │   │       └── application.properties
-│   │   └── test/
-│   └── pom.xml
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── store/          # State management
-│   │   ├── api/            # API client
-│   │   ├── types/
-│   │   └── App.tsx
-│   ├── package.json
-│   └── tsconfig.json
-│
-└── maplewood_school.sqlite
+```bash
+cd backend
+mvn spring-boot:run
 ```
 
----
+Backend URL: `http://localhost:8080`
 
-**Questions?** Email: <DL-eBay-Data-Productization@ebay.com>
-# red_panda
-# red_panda
+### 2. Run frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### 3. Login
+
+- Username: `root`
+- Password: `rootPassword`
+
+## Architecture Choices
+
+### Backend architecture
+
+- Typical Spring boot layered structure: `controllers -> services -> repositories -> domain`.
+- Spring Data JPA repositories handle data access and custom queries.
+- Business rules are centralized in `StudentService.canTakeCourse(...)` and reused by `CourseService`.
+- Session-based auth with Spring Security + CSRF protection for SPA requests.
+- SQLite is used for persisted local data; H2 is used in tests.
+
+### Frontend architecture
+
+- Feature-first organization under `src/features`.
+- Main application pages are under `src/pages`.
+- Server state is centralized using `@tanstack/react-query` (queries + mutations + cache invalidation).
+- Zod schemas are used to validate backend payloads at runtime. See `src/features/api/api.ts` for shared DTO schemas/types.
+- UI components are split into reusable building blocks under `src/features/ui`.
+- Styling is done with CSS Modules to keep styles scoped per component.
+- Storybook is used to build and review UI components in isolation.
+- MSW is used in frontend unit tests and Storybook stories to mock API responses.
+- Routing is page-based (`dashboard`, `courses`, `calendar`) with a shared layout/navigation shell.
+
+## Important Files
+
+### Backend
+
+- `backend/src/main/java/com/maplewood/config/SecurityConfig.java` (auth, sessions, CSRF)
+- `backend/src/main/java/com/maplewood/controllers/CourseController.java` (courses + enrollment API)
+- `backend/src/main/java/com/maplewood/controllers/StudentDashboardController.java` (dashboard APIs)
+- `backend/src/main/java/com/maplewood/services/StudentService.java` (core enrollment rule checks)
+
+### Frontend
+
+- `frontend/src/App.tsx` (auth gate + routes)
+- `frontend/src/features/query-client/query-client.ts` (React Query setup)
+- `frontend/src/features/api/api.ts` (shared API DTO schemas/types)
+- `frontend/src/pages/dashboard/dashboard.tsx` (dashboard UI/state)
+- `frontend/src/pages/courses/courses.tsx` (course browse/filter experience)
+- `frontend/src/features/enrollment/enrollment.ts` (enroll API + error mapping)
+
+## Running tests
+
+### Backend tests
+
+```bash
+cd backend
+mvn test
+```
+
+### Frontend tests
+
+```bash
+cd frontend
+npm test
+```
+
+### Frontend typecheck
+
+```bash
+cd frontend
+npm run typecheck
+```
+
+### Storybook
+
+```bash
+cd frontend
+npm run storybook
+```
