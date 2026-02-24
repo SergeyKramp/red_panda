@@ -61,6 +61,7 @@ npm start
 - UI components are split into reusable building blocks under `src/features/ui`.
 - Styling is done with CSS Modules to keep styles scoped per component.
 - Storybook is used to build and review UI components in isolation.
+- MSW is used in frontend unit tests and Storybook stories to mock API responses.
 - Routing is page-based (`dashboard`, `courses`, `calendar`) with a shared layout/navigation shell.
 
 ## Important Files
